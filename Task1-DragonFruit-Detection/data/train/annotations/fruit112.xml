@@ -1,0 +1,50 @@
+
+<annotation>
+    <folder>images</folder>
+    <filename>fruit112.png</filename>
+    <size>
+        <width>400</width>
+        <height>300</height>
+        <depth>3</depth>
+    </size>
+    <segmented>0</segmented>
+    <object>
+        <name>pineapple</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <occluded>0</occluded>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>92</xmin>
+            <ymin>118</ymin>
+            <xmax>222</xmax>
+            <ymax>213</ymax>
+        </bndbox>
+    </object>
+    <object>
+        <name>snake fruit</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <occluded>0</occluded>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>211</xmin>
+            <ymin>225</ymin>
+            <xmax>238</xmax>
+            <ymax>244</ymax>
+        </bndbox>
+    </object>
+    <object>
+        <name>banana</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <occluded>0</occluded>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>266</xmin>
+            <ymin>145</ymin>
+            <xmax>310</xmax>
+            <ymax>196</ymax>
+        </bndbox>
+    </object>
+</annotation>

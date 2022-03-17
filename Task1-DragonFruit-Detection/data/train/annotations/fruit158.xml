@@ -1,0 +1,37 @@
+
+<annotation>
+    <folder>images</folder>
+    <filename>fruit158.png</filename>
+    <size>
+        <width>400</width>
+        <height>300</height>
+        <depth>3</depth>
+    </size>
+    <segmented>0</segmented>
+    <object>
+        <name>pineapple</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <occluded>0</occluded>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>16</xmin>
+            <ymin>25</ymin>
+            <xmax>195</xmax>
+            <ymax>187</ymax>
+        </bndbox>
+    </object>
+    <object>
+        <name>banana</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <occluded>0</occluded>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>228</xmin>
+            <ymin>132</ymin>
+            <xmax>313</xmax>
+            <ymax>211</ymax>
+        </bndbox>
+    </object>
+</annotation>

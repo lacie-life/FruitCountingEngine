@@ -1,0 +1,50 @@
+
+<annotation>
+    <folder>images</folder>
+    <filename>fruit23.png</filename>
+    <size>
+        <width>400</width>
+        <height>300</height>
+        <depth>3</depth>
+    </size>
+    <segmented>0</segmented>
+    <object>
+        <name>pineapple</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <occluded>0</occluded>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>125</xmin>
+            <ymin>32</ymin>
+            <xmax>289</xmax>
+            <ymax>174</ymax>
+        </bndbox>
+    </object>
+    <object>
+        <name>snake fruit</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <occluded>0</occluded>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>191</xmin>
+            <ymin>178</ymin>
+            <xmax>209</xmax>
+            <ymax>209</ymax>
+        </bndbox>
+    </object>
+    <object>
+        <name>dragon fruit</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <occluded>0</occluded>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>114</xmin>
+            <ymin>197</ymin>
+            <xmax>173</xmax>
+            <ymax>262</ymax>
+        </bndbox>
+    </object>
+</annotation>
