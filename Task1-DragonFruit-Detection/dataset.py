@@ -19,7 +19,7 @@ class CustomDataset(Dataset):
         self.classes = classes
 
         # get all the image paths in sorted order
-        self.image_paths = glob.glob(f"{self.dir_path}/*.jpg")
+        self.image_paths = glob.glob(f"{self.dir_path}/images/*.png")
         self.all_images = [image_path.split('/')[-1] for image_path in self.image_paths]
         self.all_images = sorted(self.all_images)
 
@@ -37,7 +37,7 @@ class CustomDataset(Dataset):
 
         # capture the corresponding XML file for getting the annotations
         annot_filename = image_name[:-4] + '.xml'
-        annot_file_path = os.path.join(self.dir_path, annot_filename)
+        annot_file_path = os.path.join(self.dir_path, "/lables/" + annot_filename)
 
         boxes = []
         labels = []
@@ -106,7 +106,6 @@ class CustomDataset(Dataset):
 
 # prepare the final datasets and data loaders
 train_dataset = CustomDataset(TRAIN_DIR, RESIZE_TO, RESIZE_TO, CLASSES, get_train_transform())
-valid_dataset = CustomDataset(VALID_DIR, RESIZE_TO, RESIZE_TO, CLASSES, get_valid_transform())
 
 train_loader = DataLoader(
     train_dataset,
@@ -116,15 +115,8 @@ train_loader = DataLoader(
     collate_fn=collate_fn
 )
 
-valid_loader = DataLoader(
-    valid_dataset,
-    batch_size=BATCH_SIZE,
-    shuffle=False,
-    num_workers=0,
-    collate_fn=collate_fn
-)
 print(f"Number of training samples: {len(train_dataset)}")
-print(f"Number of validation samples: {len(valid_dataset)}\n")
+
 
 # execute datasets.py using Python command from Terminal...
 # ... to visualize sample images
