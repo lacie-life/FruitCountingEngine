@@ -11,7 +11,7 @@ TRAIN_DIR = 'data/train'
 VALID_DIR = 'data/test'
 # classes: 0 index is reserved for background
 CLASSES = [
-    'background', 'snake_fruit', 'dragon_fruit', 'banana', 'pineapple'
+    'background', 'snake fruit', 'dragon fruit', 'banana', 'pineapple',
 ]
 
 NUM_CLASSES = 5

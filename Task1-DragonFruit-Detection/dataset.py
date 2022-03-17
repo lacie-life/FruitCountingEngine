@@ -26,18 +26,22 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx):
         # capture the image name and the full image path
         image_name = self.all_images[idx]
-        image_path = os.path.join(self.dir_path, image_name)
+        image_path = os.path.join(self.dir_path + "/images/" + image_name)
 
         # read the image
         image = cv2.imread(image_path)
+
+        print(image_path)
+
         # convert BGR to RGB color format
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
+
         image_resized = cv2.resize(image, (self.width, self.height))
         image_resized /= 255.0
 
         # capture the corresponding XML file for getting the annotations
         annot_filename = image_name[:-4] + '.xml'
-        annot_file_path = os.path.join(self.dir_path, "/lables/" + annot_filename)
+        annot_file_path = os.path.join(self.dir_path + "/annotations/" + annot_filename)
 
         boxes = []
         labels = []
