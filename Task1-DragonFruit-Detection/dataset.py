@@ -135,16 +135,24 @@ if __name__ == '__main__':
     # function to visualize a single sample
     def visualize_sample(image, target):
         box = target['boxes'][0]
-        label = CLASSES[target['labels']]
+
+        # print(len(target['labels']))
+        # label = []
+        #
+        # for idx in target['labels']:
+        #     label.append(CLASSES[idx])
+        #
+        # print(label)
+
         cv2.rectangle(
             image,
             (int(box[0]), int(box[1])), (int(box[2]), int(box[3])),
             (0, 255, 0), 1
         )
-        cv2.putText(
-            image, label, (int(box[0]), int(box[1] - 5)),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2
-        )
+        # cv2.putText(
+        #     image, label, (int(box[0]), int(box[1] - 5)),
+        #     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2
+        # )
         cv2.imshow('Image', image)
         cv2.waitKey(0)
 
