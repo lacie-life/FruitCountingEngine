@@ -7,7 +7,7 @@ from albumentations.augmentations.transforms import Normalize
 from albumentations.pytorch.transforms import ToTensor
 from torchvision import models
 
-from config import DETECTION_THRESHOLD, CLASSES
+from config import DETECTION_THRESHOLD, CLASSES, ONNX_FILE_PATH
 from model import create_model, convert_to_onnx
 
 import tensorrt as trt
@@ -16,6 +16,7 @@ import pycuda.autoinit
 
 # logger to capture errors, warnings, and other information during the build and inference phases
 TRT_LOGGER = trt.Logger()
+
 
 def preprocess_image(img_path):
 
@@ -63,53 +64,43 @@ def postprocess(output_data, img_path):
         cv2.imwrite(f"test_predictions/{image_name}.jpg", orig_image, )
 
 
-def build_engine(onnx_file_path):
-    # initialize TensorRT engine and parse ONNX model
-    builder = trt.Builder(TRT_LOGGER)
-    network = builder.create_network()
-    parser = trt.OnnxParser(network, TRT_LOGGER)
+def build_engine(onnx_file_path, engine_file_path = ""):
 
-    # allow TensorRT to use up to 1GB of GPU memory for tactic selection
-    builder.max_workspace_size = 1 << 30
-    # we have only one image in batch
-    builder.max_batch_size = 1
-    # use FP16 mode if possible
-    if builder.platform_has_fast_fp16:
-        builder.fp16_mode = True
+    network_creation_flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_PRECISION)
+    network_creation_flag |= 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
 
-    # parse ONNX
-    with open(onnx_file_path, 'rb') as model:
-        print('Beginning ONNX file parsing')
-        parser.parse(model.read())
-    print('Completed parsing of ONNX file')
+    with trt.Builder(TRT_LOGGER) as builder, builder.create_network(
+            network_creation_flag) as network, builder.create_builder_config() as config, trt.OnnxParser(network,
+                                                                                                         TRT_LOGGER) as parser, trt.Runtime(
+            TRT_LOGGER) as runtime:
+        config.max_workspace_size = 1 << 30
+        builder.max_batch_size = 1
 
-    # generate TensorRT engine optimized for the target platform
-    print('Building an engine...')
-    engine = builder.build_cuda_engine(network)
-    context = engine.create_execution_context()
-    print("Completed creating Engine")
-    return engine, context
+        print('Loading ONNX file from path {}...'.format(onnx_file_path))
+        with open(onnx_file_path, 'rb') as model:
+            print('Beginning ONNX file parsing')
+            if not parser.parse(model.read()):
+                print('ERROR: Failed to parse the ONNX file.')
+                for error in range(parser.num_errors):
+                    print(parser.get_error(error))
+                return None
+
+        network.get_input(0).shape = [1, 3, 608, 608]
+        print('Completed parsing of ONNX file')
+        print('Building an engine from file {}; this may take a while...'.format(onnx_file_path))
+        plan = builder.build_serialized_network(network, config)
+        engine = runtime.deserialize_cuda_engine(plan)
+        print("Completed creating Engine")
+        with open(engine_file_path, "wb") as f:
+            f.write(plan)
+        context = engine.create_execution_context()
+        print("Completed creating Engine")
+        return engine, context
 
 
 def main():
-    img_path = "data/test/images/fruit104.png"
-    input = preprocess_image(img_path)
-
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-
-    model = create_model(num_classes=5)
-
-    model.load_state_dict(torch.load("outputs/model100.pth", map_location=device))
-    model.eval()
-
-    output = model(input)
-
-    postprocess(output, img_path)
-
-    onnx_path = convert_to_onnx(model, input)
-
     # initialize TensorRT engine and parse ONNX model
-    engine, context = build_engine(onnx_path)
+    engine, context = build_engine(ONNX_FILE_PATH)
     # get sizes of input and output and allocate memory required for input data and for output data
     for binding in engine:
         if engine.binding_is_input(binding):  # we expect only one input
@@ -126,7 +117,7 @@ def main():
     stream = cuda.Stream()
 
     # preprocess input data
-    host_input = np.array(preprocess_image("turkish_coffee.jpg").numpy(), dtype=np.float32, order='C')
+    host_input = np.array(preprocess_image("data/test/images/fruit1.png").numpy(), dtype=np.float32, order='C')
     cuda.memcpy_htod_async(device_input, host_input, stream)
 
     # run inference
@@ -138,8 +129,14 @@ def main():
     output_data = torch.Tensor(host_output).reshape(engine.max_batch_size, output_shape[0])
     postprocess(output_data)
 
+
 if __name__ == '__main__':
-    main()
+    img_path = "data/test/images/fruit104.png"
+    model_path = "outputs/model100.pth"
+
+    path = convert_to_onnx(model_path, img_path)
+
+    # main()
 
 
 
