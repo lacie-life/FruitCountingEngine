@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import torch
 import glob as glob
+import time
 
 from model import create_model
 
@@ -31,6 +32,7 @@ CLASSES = [
 detection_threshold = 0.8
 
 for i in range(len(test_images)):
+    ts = time.time()
     # get the image file name for saving output later on
     image_name = test_images[i].split('/')[-1].split('.')[0]
     image = cv2.imread(test_images[i])
@@ -51,6 +53,7 @@ for i in range(len(test_images)):
     # load all detection to CPU for further operations
     outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
     # carry further only if there are detected boxes
+    ts_ = time.time()
     if len(outputs[0]['boxes']) != 0:
         boxes = outputs[0]['boxes'].data.numpy()
         scores = outputs[0]['scores'].data.numpy()
@@ -75,5 +78,7 @@ for i in range(len(test_images)):
         cv2.imwrite(f"test_predictions/{image_name}.jpg", orig_image, )
     print(f"Image {i + 1} done...")
     print('-' * 50)
+    print("Time: ")
+    print(ts_ - ts)
 print('TEST PREDICTIONS COMPLETE')
 cv2.destroyAllWindows()

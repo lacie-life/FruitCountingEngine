@@ -22,3 +22,6 @@ VISUALIZE_TRANSFORMED_IMAGES = False
 OUT_DIR = 'outputs'
 SAVE_PLOTS_EPOCH = 2  # save loss plots after these many epochs
 SAVE_MODEL_EPOCH = 2  # save model after these many epochs
+
+DETECTION_THRESHOLD = 0.8
+ONNX_FILE_PATH = "onnx/model.onnx"
