@@ -74,3 +74,20 @@ def convert_to_onnx(model_path, img_path):
 
     return ONNX_FILE_PATH
 
+
+def network_to_half(model):
+    """
+    Convert model to half precision in a batchnorm-safe way.
+    """
+    def bn_to_float(module):
+        """
+        BatchNorm layers need parameters in single precision. Find all layers and convert
+        them back to float.
+        """
+        if isinstance(module, torch.nn.modules.batchnorm._BatchNorm):
+            module.float()
+        for child in module.children():
+            bn_to_float(child)
+        return module
+    return bn_to_float(model.half())
+
