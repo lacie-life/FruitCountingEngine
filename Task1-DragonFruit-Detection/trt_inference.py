@@ -134,9 +134,9 @@ if __name__ == '__main__':
     img_path = "data/test/images/fruit104.png"
     model_path = "outputs/model100.pth"
 
-    path = convert_to_onnx(model_path, img_path)
+    # path = convert_to_onnx(model_path, img_path)
 
-    # main()
+    main()
 
 
 

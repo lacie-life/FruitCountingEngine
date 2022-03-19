@@ -111,5 +111,8 @@ if __name__ == '__main__':
             figure_2.savefig(f"{OUT_DIR}/valid_loss_{epoch + 1}.png")
             torch.save(model.state_dict(), f"{OUT_DIR}/model{epoch + 1}.pth")
 
+        if ((epoch + 1) % 10) == 0:
+            model_scripted = torch.jit.script(model)
+            model_scripted.save(f"{OUT_DIR}/model{epoch + 1}.pt")
         plt.close('all')
 

@@ -6,6 +6,7 @@ from albumentations.pytorch.transforms import ToTensor
 import cv2
 import numpy as np
 from config import ONNX_FILE_PATH
+from torch2trt import torch2trt
 
 
 def create_model(num_classes):
@@ -20,6 +21,7 @@ def create_model(num_classes):
 
 
 def convert_to_onnx(model_path, img_path):
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     # Image sample input
     image = cv2.imread(img_path)
@@ -30,34 +32,39 @@ def convert_to_onnx(model_path, img_path):
     # bring color channels to front
     image_resized = np.transpose(image_resized, (2, 0, 1)).astype(float)
     # convert to tensor
-    image_resized = torch.tensor(image_resized, dtype=torch.float)
+    image_resized = torch.tensor(image_resized, device='cpu', dtype=torch.float)
     # add batch dimension
     image_resized = torch.unsqueeze(image_resized, 0)
 
     # Model
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    model = create_model(num_classes=5).to(device)
-    state_dict = torch.load(model_path, map_location='cuda')
+    model = create_model(num_classes=5)
+    # model.cuda()
+    state_dict = torch.load(model_path, map_location='cpu')
     model.load_state_dict(state_dict)
-    model.eval()
 
-    model.to(device)
-    onnx_input = image_resized.cuda()
+    # model = torch.jit.load(model_path)
+    model = model.eval()
 
-    with torch.no_grad():
-        outputs = model(onnx_input)
+    # model = model.to('cuda')
+    # onnx_input = image_resized.to('cuda')
+
+    dummy_input = torch.randn(1, 3, 256, 256).to('cpu')
+
+    # with torch.no_grad():
+    #     outputs = model(onnx_input)
 
     print(next(model.parameters()).device)
-    print(onnx_input.device)
+    print(dummy_input.device)
 
     torch.onnx.export(
-        model, onnx_input,
+        model, dummy_input,
         ONNX_FILE_PATH,
         input_names=["input"],
         output_names=["output"],
         export_params=True,
         verbose=True,
         opset_version=11)
+
     onnx_model = onnx.load(ONNX_FILE_PATH)
     # check that the model converted fine
     onnx.checker.check_model(onnx_model)
