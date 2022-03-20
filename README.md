@@ -1,6 +1,6 @@
 # Master-Thesis
 
-## Name: Dragon fruit yield rating system using UAV
+## Name: Dragon fruit yield estimation system using UAV
 
 ## Motivation: Building a camera module mounted on a UAV that collects data on images of dragon fruit and gives an estimate of dragon fruit production
 
