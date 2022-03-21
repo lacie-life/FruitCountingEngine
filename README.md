@@ -17,7 +17,7 @@
 
 ## Tasks
 
-- [x] Model dragon fruit detection
+- [x] Model dragon fruit detection (SSD-Mobilenet-v2)
 - [ ] Record data 
 - [ ] Implement model in Jetson AGX and ZED 2
 - [ ] Counting Fruit (trying bounding box optical flow and SfM)
