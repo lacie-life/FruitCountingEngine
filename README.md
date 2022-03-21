@@ -17,7 +17,8 @@
 
 ## Tasks
 
-- [ ] Model dragon fruit detection => counting 
+- [x] Model dragon fruit detection
+- [ ] Record data 
 - [ ] Implement model in Jetson AGX and ZED 2
-- [ ] Estimate yield rating
+- [ ] Counting Fruit (trying bounding box optical flow and SfM)
 - [ ] 3D Reconstruction
