@@ -19,8 +19,8 @@
 
 - [x] Model dragon fruit detection (SSD-Mobilenet-v2)
 - [ ] Record data 
-  - [ ] Print 3D box 
-  - [ ] Record with Zed 2, T265 and RTK (Phase 1)
+  - [x] Print 3D box 
+  - [x] Record with Zed 2, T265 and RTK (Phase 1)
   - [ ] Record with Quad Camera, MyntEye and RTK (Phase 2)
 
 ### Phase 1
