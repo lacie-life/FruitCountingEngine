@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+Task3-TensorRT-Engine-with-Zed-2/build
+
