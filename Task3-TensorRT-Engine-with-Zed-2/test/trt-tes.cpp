@@ -74,7 +74,6 @@ int main( int argc, char** argv )
 	if( cmdLine.GetFlag("help") )
 		return usage();
 
-
 	/*
 	 * attach signal handler
 	 */
@@ -93,7 +92,6 @@ int main( int argc, char** argv )
 		return 0;
 	}
 
-
 	/*
 	 * create output stream
 	 */
@@ -102,7 +100,6 @@ int main( int argc, char** argv )
 	if( !output )
 		LogError("detectnet:  failed to create output stream\n");	
 	
-
 	/*
 	 * create detection network
 	 */
@@ -117,7 +114,6 @@ int main( int argc, char** argv )
 	// parse overlay flags
 	const uint32_t overlayFlags = detectNet::OverlayFlagsFromStr(cmdLine.GetString("overlay", "box,labels,conf"));
 	
-
 	/*
 	 * processing loop
 	 */

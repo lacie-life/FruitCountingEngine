@@ -3,11 +3,17 @@ cmake_minimum_required(VERSION 2.8)
 project(trt-ssd)
 
 # setup build flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-write-strings -Wno-deprecated-declarations")	# -std=c++14 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-write-strings -Wno-deprecated-declarations -Wno-format-extra-args")	# -std=c++14 
+set(SPECIAL_OS_LIBS "pthread" "X11")
+
+find_package(ZED 3 REQUIRED)
+find_package(OpenCV REQUIRED)
+
+message("-- ZED SDK: ${ZED_VERSION}")
 
 # setup CUDA
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/jetson-utils/cuda" )
-find_package(CUDA)
+find_package(CUDA ${ZED_CUDA_VERSION} EXACT REQUIRED)
 message("-- CUDA version: ${CUDA_VERSION}")
 
 set(
@@ -47,8 +53,20 @@ include_directories(${PROJECT_INCLUDE_DIR}
                     ${PROJECT_INCLUDE_DIR}/trt-ssd 
                     ${PROJECT_INCLUDE_DIR}/jetson-utils
                     ${PROJECT_INCLUDE_DIR}/calibration)
-                    
-include_directories(/usr/include/gstreamer-1.0 /usr/lib/aarch64-linux-gnu/gstreamer-1.0/include /usr/include/glib-2.0 /usr/include/libxml2 /usr/lib/aarch64-linux-gnu/glib-2.0/include/)
+
+include_directories(${CUDA_INCLUDE_DIRS})
+include_directories(${ZED_INCLUDE_DIRS})
+include_directories(${OpenCV_INCLUDE_DIRS})
+
+link_directories(${ZED_LIBRARY_DIR})
+link_directories(${OpenCV_LIBRARY_DIRS})
+link_directories(${CUDA_LIBRARY_DIRS})
+
+include_directories(/usr/include/gstreamer-1.0 
+                    /usr/lib/aarch64-linux-gnu/gstreamer-1.0/include 
+                    /usr/include/glib-2.0 
+                    /usr/include/libxml2 
+                    /usr/lib/aarch64-linux-gnu/glib-2.0/include/)
 
 file(GLOB inferenceSources trt-ssd/*.cpp trt-ssd/*.cu trt-ssd/*.cpp calibration/*.cpp)
 file(GLOB inferenceIncludes trt-ssd/*.h trt-ssd/*.h calibration/*.h)
@@ -82,5 +100,11 @@ if(CUDA_VERSION_MAJOR GREATER 9)
     endif()
 endif()
 
-add_executable(ssd-detect main.cpp)
+add_executable(ssd-detect test/trt-test.cpp)
 target_link_libraries(ssd-detect trt-ssd)
+
+add_executable(ssd-zed test/zed-test.cpp)
+target_link_libraries(ssd-zed trt-ssd 
+                              ${ZED_LIBRARIES} 
+                              ${OpenCV_LIBRARIES})
+
