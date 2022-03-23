@@ -108,3 +108,8 @@ target_link_libraries(ssd-zed trt-ssd
                               ${ZED_LIBRARIES} 
                               ${OpenCV_LIBRARIES})
 
+add_executable(trt-demo main.cpp)
+target_link_libraries(trt-demo trt-ssd 
+                               ${ZED_LIBRARIES} 
+                               ${OpenCV_LIBRARIES})
+
