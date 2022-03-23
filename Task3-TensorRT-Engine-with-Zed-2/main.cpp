@@ -89,7 +89,7 @@ int main(int argc, char** argv)
 
     // To share data between sl::Mat and cv::Mat, use slMat2cvMat()
     // Only the headers and pointer to the sl::Mat are copied, not the data itself
-    Mat image_zed(new_width, new_height, MAT_TYPE::U8_C4, sl::MEM::GPU);
+    Mat image_zed(new_width, new_height, MAT_TYPE::U8_C4);
     cv::Mat image_ocv = slMat2cvMat(image_zed);
     // cv::cuda::GpuMat image_cuda = slMat2cvMatGPU(image_zed);
 
