@@ -122,7 +122,7 @@ int main(int argc, char** argv)
             // detect objects in the frame
 		    detectNet::Detection* detections = NULL;
 
-            const int numDetections = net->Detect(image_zed, new_width, new_height, &detections, overlayFlags);
+            const int numDetections = net->Detect(image_cuda.ptr<float>(), new_width, new_height, &detections, overlayFlags);
 		
 		    if( numDetections > 0 )
 		    {
