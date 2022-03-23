@@ -89,8 +89,9 @@ int main(int argc, char** argv)
 
     // To share data between sl::Mat and cv::Mat, use slMat2cvMat()
     // Only the headers and pointer to the sl::Mat are copied, not the data itself
-    Mat image_zed(new_width, new_height, MAT_TYPE::U8_C4);
+    Mat image_zed(new_width, new_height, MAT_TYPE::U8_C4, sl::MEM::GPU);
     cv::Mat image_ocv = slMat2cvMat(image_zed);
+    // cv::cuda::GpuMat image_cuda = slMat2cvMatGPU(image_zed);
 
     // TODO: Convert to GPU memory => run detectnet
     /*
@@ -117,12 +118,26 @@ int main(int argc, char** argv)
             // Retrieve the left image, depth image in half-resolution
             zed.retrieveImage(image_zed, VIEW::LEFT, MEM::CPU, new_image_size);
 
-            cv::cuda::GpuMat image_cuda = slMat2cvMatGPU(image_zed);
-
             // detect objects in the frame
 		    detectNet::Detection* detections = NULL;
 
-            const int numDetections = net->Detect(image_cuda.ptr<float>(), new_width, new_height, &detections, overlayFlags);
+            cv::Mat img_cv = slMat2cvMat(image_zed);
+
+            // static float data[3 * 600 * 900];
+
+            // int i = 0;
+            // for (int row = 0; row < 600; ++row) {
+            //     uchar* uc_pixel = img_cv.data + row * img_cv.step;
+            //     for (int col = 0; col < 900; ++col) {
+            //         data[3 * 600 * 900 + i] = (float) uc_pixel[2] / 255.0;
+            //         data[3 * 600 * 900 + i + 600 * 900] = (float) uc_pixel[1] / 255.0;
+            //         data[3 * 600 * 900 + i + 2 * 600 * 900] = (float) uc_pixel[0] / 255.0;
+            //         uc_pixel += 3;
+            //         ++i;
+            //     }
+            // }
+
+            const int numDetections = net->Detect(img_cv.ptr<float>(), new_width, new_height, &detections, overlayFlags);
 		
 		    if( numDetections > 0 )
 		    {
