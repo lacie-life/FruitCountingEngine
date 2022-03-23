@@ -31,7 +31,7 @@ void sig_handler(int signo)
 /**
 * This function displays help in console
 **/
-void printHelp() {
+int printHelp() {
     printf("usage: detectnet [--help] [--network=NETWORK] [--threshold=THRESHOLD] ...\n");
 	printf("                 input_URI [output_URI]\n\n");
 	printf("Locate objects in a video/image stream using an object detection DNN.\n");
@@ -92,16 +92,24 @@ int main(int argc, char** argv)
     Mat image_zed(new_width, new_height, MAT_TYPE::U8_C4);
     cv::Mat image_ocv = slMat2cvMat(image_zed);
 
-
-    Mat depth_image_zed(new_width, new_height, MAT_TYPE::U8_C4);
-    cv::Mat depth_image_ocv = slMat2cvMat(depth_image_zed);
-
-    Mat point_cloud;
-
     // TODO: Convert to GPU memory => run detectnet
+    /*
+	 * create detection network
+	 */
+	detectNet* net = detectNet::Create(cmdLine);
+	
+	if( !net )
+	{
+		LogError("detectnet:  failed to load detectNet model\n");
+		return 0;
+	}
+
+	// parse overlay flags
+	const uint32_t overlayFlags = detectNet::OverlayFlagsFromStr(cmdLine.GetString("overlay", "box,labels,conf"));
 
     // Loop until 'q' is pressed
     char key = ' ';
+
     while (key != 'q') {
 
         if (zed.grab(runtime_parameters) == ERROR_CODE::SUCCESS) {
@@ -109,28 +117,31 @@ int main(int argc, char** argv)
             // Retrieve the left image, depth image in half-resolution
             zed.retrieveImage(image_zed, VIEW::LEFT, MEM::CPU, new_image_size);
 
-            // retrieve CPU -> the ocv reference is therefore updated
-            zed.retrieveImage(depth_image_zed, VIEW::DEPTH, MEM::CPU, new_image_size);
+            cv::cuda::GpuMat image_cuda = slMat2cvMatGPU(image_zed);
 
-            // Retrieve the RGBA point cloud in half-resolution
-            // To learn how to manipulate and display point clouds, see Depth Sensing sample
-            zed.retrieveMeasure(point_cloud, MEASURE::XYZRGBA, MEM::CPU, new_image_size);
+            // detect objects in the frame
+		    detectNet::Detection* detections = NULL;
+
+            const int numDetections = net->Detect(image_zed, new_width, new_height, &detections, overlayFlags);
+		
+		    if( numDetections > 0 )
+		    {
+			    LogVerbose("%i objects detected\n", numDetections);
+		
+			    for( int n=0; n < numDetections; n++ )
+			    {
+				    LogVerbose("detected obj %i  class #%u (%s)  confidence=%f\n", n, detections[n].ClassID, net->GetClassDesc(detections[n].ClassID), detections[n].Confidence);
+				    LogVerbose("bounding box %i  (%f, %f)  (%f, %f)  w=%f  h=%f\n", n, detections[n].Left, detections[n].Top, detections[n].Right, detections[n].Bottom, detections[n].Width(), detections[n].Height()); 
+			    }
+		    }
 
             // Display image and depth using cv:Mat which share sl:Mat data
             cv::imshow("Image", image_ocv);
-
-            // download the Ocv GPU data from Device to Host to be displayed
-            depth_image_ocv_gpu.download(depth_image_ocv);
-
-            cv::imshow("Depth", depth_image_ocv);
 
             // Handle key event
             key = cv::waitKey(10);
         }
     }
-
-    // sl::Mat GPU memory needs to be free before the zed
-    depth_image_zed_gpu.free();
 
     zed.close();
     return 0;
