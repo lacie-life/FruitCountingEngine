@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 
 random.seed(108)
 
-ANNOTATION_PATH = "/home/lacie/Github/Master-Thesis/Task1-DragonFruit-Detection/data/train/Annotations/"
-IMAGE_PATH = "/home/lacie/Github/Master-Thesis/Task1-DragonFruit-Detection/data/train/Images/"
+ANNOTATION_PATH = "/home/jun/Github/Master-Thesis/Task1-DragonFruit-Detection/data/train/Annotations/"
+IMAGE_PATH = "/home/jun/Github/Master-Thesis/Task1-DragonFruit-Detection/data/train/Images/"
 
 # Function to get the data from XML Annotation
 def extract_info_from_xml(xml_file):
@@ -164,6 +164,7 @@ annotations.sort()
 train_images, val_images, train_annotations, val_annotations = train_test_split(images, annotations, test_size = 0.2, random_state = 1)
 val_images, test_images, val_annotations, test_annotations = train_test_split(val_images, val_annotations, test_size = 0.5, random_state = 1)
 
+
 #Utility function to move images
 def move_files_to_folder(list_of_files, destination_folder):
     for f in list_of_files:
@@ -172,6 +173,7 @@ def move_files_to_folder(list_of_files, destination_folder):
         except:
             print(f)
             assert False
+
 
 # Move the splits into their folders
 move_files_to_folder(train_images, 'images/train')
