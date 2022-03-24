@@ -25,7 +25,9 @@
 
 ### Phase 1
 - [ ] Implement model in Jetson AGX and ZED 2  
-  - [ ] Run TenserRT Engine in ZED 2 Video stream => Return Bounding Boxes
+  - [ ] Run TenserRT Engine in ZED 2 Video stream 
+    - [x] Build and Run
+    - [ ] Fixing crash (finding bug) 
   - [ ] Tracking Bounding Boxes use VPI KLT Bounding Box Tracker
   - [ ] Counting Fruit (trying bounding box optical flow and SfM)
   - [ ] Improve Tracking and Counting Algorithm
