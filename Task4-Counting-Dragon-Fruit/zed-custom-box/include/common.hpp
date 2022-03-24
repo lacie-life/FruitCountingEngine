@@ -15,6 +15,7 @@ cv::Rect get_rect(cv::Mat& img, float bbox[4]) {
     int l, r, t, b;
     float r_w = Yolo::INPUT_W / (img.cols * 1.0);
     float r_h = Yolo::INPUT_H / (img.rows * 1.0);
+
     if (r_h > r_w) {
         l = bbox[0] - bbox[2] / 2.f;
         r = bbox[0] + bbox[2] / 2.f;
@@ -34,7 +35,20 @@ cv::Rect get_rect(cv::Mat& img, float bbox[4]) {
         t = t / r_h;
         b = b / r_h;
     }
-    return cv::Rect(l, t, r - l, b - t);
+
+    int r_minus_l = r - l;
+    int b_minus_t = b - t;
+
+    if(l <0 )
+        l = 0;
+    if(t < 0 )
+        t = 0; 
+    if(r_minus_l < 0 )
+        r_minus_l = 0;
+    if(b_minus_t < 0 )
+        b_minus_t = 0;
+
+    return cv::Rect(l, t, r_minus_l, b_minus_t);
 }
 
 float iou(float lbox[4], float rbox[4]) {
