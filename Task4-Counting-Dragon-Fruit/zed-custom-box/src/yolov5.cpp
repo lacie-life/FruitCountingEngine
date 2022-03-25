@@ -445,10 +445,14 @@ int main(int argc, char** argv) {
     sl::Pose cam_w_pose;
     cam_w_pose.pose_data.setIdentity();
 
+    int i = 0;
+
     while (viewer.isAvailable()) {
+        std::cout << "Frame number: " << i << std::endl;
+        i++;
         if (zed.grab() == sl::ERROR_CODE::SUCCESS) {
 
-            zed.retrieveImage(left_sl, sl::VIEW::LEFT);
+            zed.retrieveImage(left_sl, sl::VIEW::LEFT); 
 
             // Preparing inference
             cv::Mat left_cv_rgba = slMat2cvMat(left_sl);
@@ -467,6 +471,8 @@ int main(int argc, char** argv) {
                     ++i;
                 }
             }
+
+            std::cout << "Image: " << left_sl.getWidth() << " " << left_sl.getHeight() << std::endl;
 
             // Running inference
             doInference(*context, stream, buffers, data, prob, BATCH_SIZE);
@@ -507,6 +513,8 @@ int main(int argc, char** argv) {
             zed.retrieveMeasure(point_cloud, sl::MEASURE::XYZRGBA, sl::MEM::GPU, pc_resolution);
             zed.getPosition(cam_w_pose, sl::REFERENCE_FRAME::WORLD);
             viewer.updateData(point_cloud, objects.object_list, cam_w_pose.pose_data);
+
+            std::cout << "Number Object: " << res.size() << std::endl;
         }
     }
 

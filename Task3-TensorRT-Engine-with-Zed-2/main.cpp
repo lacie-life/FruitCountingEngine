@@ -11,13 +11,13 @@ const int nmsMaxOut = 300;
 
 // stuff we know about the network and the caffe input/output blobs
 static const int INPUT_C = 3;
-static const int INPUT_H = 375;
-static const int INPUT_W = 500;
+static const int INPUT_H = 300;
+static const int INPUT_W = 300;
 static const int IM_INFO_SIZE = 3;
 static const int OUTPUT_CLS_SIZE = 5;
 static const int OUTPUT_BBOX_SIZE = OUTPUT_CLS_SIZE * 4;
 
-const std::string CLASSES[OUTPUT_CLS_SIZE]{ "background", "", "snake fruit", "dragon fruit", "banana", "pineapple"};
+const std::string CLASSES[OUTPUT_CLS_SIZE]{ "background", "snake fruit", "dragon fruit", "banana", "pineapple"};
 
 const char* INPUT_BLOB_NAME0 = "data";
 const char* INPUT_BLOB_NAME1 = "im_info";
@@ -116,6 +116,8 @@ int main(int argc, char** argv)
 	 * create detection network
 	 */
 	detectNet* net = detectNet::Create(cmdLine);
+
+    const int N = 1;
 	
 	if( !net )
 	{
@@ -126,27 +128,10 @@ int main(int argc, char** argv)
 	// parse overlay flags
 	const uint32_t overlayFlags = detectNet::OverlayFlagsFromStr(cmdLine.GetString("overlay", "box,labels,conf"));
 
-    float imInfo[N * 3]; // input im_info
-	for (int i = 0; i < N; ++i)
-	{
-		imInfo[i * 3] 	  = float(INPUT_H);	//float(ppms[i].h); 	// number of rows
-		imInfo[i * 3 + 1] = float(INPUT_W);	//float(ppms[i].w); 	// number of columns
-		imInfo[i * 3 + 2] = 1;         		// image scale
-	}
 
     float* data = new float[N*INPUT_C*INPUT_H*INPUT_W];
 	// pixel mean used by the Faster R-CNN's author
 	float pixelMean[3]{ 102.9801f, 115.9465f, 122.7717f };  // also in BGR order
-
-    // host memory for outputs
-	float* rois = new float[N * nmsMaxOut * 4];
-	float* bboxPreds = new float[N * nmsMaxOut * OUTPUT_BBOX_SIZE];
-	float* clsProbs = new float[N * nmsMaxOut * OUTPUT_CLS_SIZE];
-
-	// predicted bounding boxes
-	float* predBBoxes = new float[N * nmsMaxOut * OUTPUT_BBOX_SIZE];
-
-	float img_scale_ratio_w, img_scale_ratio_h;
 
     // Loop until 'q' is pressed
     char key = ' ';
@@ -168,11 +153,9 @@ int main(int argc, char** argv)
 			cv::Mat image_ocv_scaled;	
 			cv::resize(image_ocv,image_ocv_scaled,size);	//resize image from src->dst
 
-            img_scale_ratio_w=float(image_ocv.size().width)/float(image_ocv_scaled.size().width);	//beaware the int/int rounding 
-			img_scale_ratio_h=float(image_ocv.size().height)/float(image_ocv_scaled.size().height);
-
             cv::Mat_<cv::Vec3f>::iterator it;
 			unsigned volChl = INPUT_H*INPUT_W;
+
 			for (int c = 0; c < INPUT_C; ++c)                              
 			{
 				cv::Mat_<cv::Vec3b>::iterator it = image_ocv_scaled.begin<cv::Vec3b>();	//cv::Vec3f not working - reason still unknown...
@@ -188,7 +171,7 @@ int main(int argc, char** argv)
             // detect objects in the frame
 		    detectNet::Detection* detections = NULL;
 
-            const int numDetections = net->Detect(data, new_width, new_height, &detections, overlayFlags);
+            const int numDetections = net->Detect(data, image_ocv_scaled.height(), image_ocv_scaled.height(), &detections, overlayFlags);
             
 		
 		    if( numDetections > 0 )
@@ -203,7 +186,7 @@ int main(int argc, char** argv)
 		    }
 
             // Display image and depth using cv:Mat which share sl:Mat data
-            cv::imshow("Image", image_ocv);
+            cv::imshow("Image", image_ocv_scaled);
 
             // Handle key event
             key = cv::waitKey(10);
