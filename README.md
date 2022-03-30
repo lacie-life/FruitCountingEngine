@@ -13,11 +13,11 @@
 ## Software
 
 - [x] Jetpack 4.6 (rev.3)
-- [x] ZED SDK
+- [x] ZED SDK (ZED SDK 3.6.5 - have some problems with version 3.7)
 
 ## Tasks
 
-- [x] Model dragon fruit detection (SSD-Mobilenet-v2)
+- [x] Model dragon fruit detection (SSD-Mobilenet-v2/Yolov5)
 - [ ] Record data 
   - [x] Print 3D box 
   - [x] Record with Zed 2, T265 and RTK (Phase 1)
@@ -25,10 +25,12 @@
 
 ### Phase 1
 - [ ] Implement model in Jetson AGX and ZED 2  
-  - [ ] Run TenserRT Engine in ZED 2 Video stream 
+  - [x] Run TenserRT Engine in ZED 2 Video stream 
     - [x] Build and Run
-    - [ ] Fixing crash (finding bug) 
-  - [ ] Tracking Bounding Boxes use VPI KLT Bounding Box Tracker
+    - [x] Fixing crash (finding bug) 
+  - [ ] Bounding Box Tracker
+    - [ ] ZED 2 custom box tracker (checking)
+    - [ ] SSD-Tracker (pending)
   - [ ] Counting Fruit (trying bounding box optical flow and SfM)
   - [ ] Improve Tracking and Counting Algorithm
  
