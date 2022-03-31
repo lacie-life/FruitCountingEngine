@@ -7,9 +7,11 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 include(CheckIncludeFileCXX)
 check_include_file_cxx(opencv2/bgsegm.hpp HAVE_OPENCV_CONTRIB)
 
+find_package (glog 0.6.0 REQUIRED)
+
 include_directories(
-        ${PROJECT_SOURCE_DIR}/src
-        ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/BBTracker/src
+        ${PROJECT_SOURCE_DIR}/BBTracker/include
         ${PROJECT_SOURCE_DIR}/Tracker
         ${PROJECT_SOURCE_DIR}/Tracker/HungarianAlg
         ${PROJECT_SOURCE_DIR}/Tracker/graph
@@ -142,11 +144,12 @@ set(folder_source
         Tracker/Kalman.cpp)
 
 add_executable(${PROJECT_NAME}
-        src/main.cpp include/pipeline.h
-        src/ssd_detect.cpp
-        include/ssd_detect.h
-        include/defines.h
-        include/nms.h
+        BBTracker/src/main.cpp 
+        BBTracker/include/pipeline.h
+        BBTracker/src/ssd_detect.cpp
+        BBTracker/include/ssd_detect.h
+        BBTracker/include/defines.h
+        BBTracker/include/nms.h
         ${folder_source}
         ${folder_headers}
         ${graph_source}
@@ -160,4 +163,4 @@ source_group("Header Files" FILES ${folder_headers})
 source_group("graph" FILES ${graph_source} ${graph_header})
 source_group("GTL" FILES ${gtl_source} ${gtl_header})
 
-target_link_libraries(bb_tracking ${OpenCV_LIBS})
+target_link_libraries(bb_tracking ${OpenCV_LIBS} glog::glog)
