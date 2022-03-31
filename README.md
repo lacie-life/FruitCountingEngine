@@ -17,7 +17,7 @@
 
 ## Tasks
 
-- [x] Model dragon fruit detection (SSD-Mobilenet-v2/Yolov5)
+- [ ] Model dragon fruit detection (SSD-Mobilenet-v2/Yolov5)
   - [ ] Evaluate model
   - [ ] Improve model
 - [ ] Record data 
