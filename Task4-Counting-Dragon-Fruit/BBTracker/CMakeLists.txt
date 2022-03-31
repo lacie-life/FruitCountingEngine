@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.0)
 project(bb_tracking)
 
+# setup build flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-write-strings -Wno-deprecated-declarations -Wno-format-extra-args")	# -std=c++14
+set(SPECIAL_OS_LIBS "pthread" "X11")
+
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
