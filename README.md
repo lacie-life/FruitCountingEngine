@@ -17,7 +17,9 @@
 
 ## Tasks
 
-- [x] Model dragon fruit detection (SSD-Mobilenet-v2/Yolov5)
+- [ ] Model dragon fruit detection (SSD-Mobilenet-v2/Yolov5)
+  - [ ] Evaluate model
+  - [ ] Improve model
 - [ ] Record data 
   - [x] Print 3D box 
   - [x] Record with Zed 2, T265 and RTK (Phase 1)
