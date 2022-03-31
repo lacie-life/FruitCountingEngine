@@ -12,10 +12,12 @@
 #include <chrono>
 #include <condition_variable>
 #include <opencv2/opencv.hpp>
-#include "ssd_detect.h"
-#include "defines.h"
 #include <math.h>
 #include <algorithm>
+
+#include "ssd_detect.h"
+#include "defines.h"
+#include "detectNet.h"
 
 using namespace std;
 using namespace cv;

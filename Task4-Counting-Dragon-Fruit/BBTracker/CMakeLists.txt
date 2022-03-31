@@ -145,15 +145,17 @@ set(folder_source
         Tracker/track.cpp
         Tracker/HungarianAlg/HungarianAlg.cpp
         Tracker/LocalTracker.cpp
-        Tracker/Kalman.cpp)
+        Tracker/Kalman.cpp )
 
 add_executable(${PROJECT_NAME}
-        BBTracker/src/main.cpp 
+        main.cpp
         BBTracker/include/pipeline.h
         BBTracker/src/ssd_detect.cpp
         BBTracker/include/ssd_detect.h
         BBTracker/include/defines.h
         BBTracker/include/nms.h
+        BBTracker/src/bbtracker.cpp
+        BBTracker/include/bbtracker.h
         ${folder_source}
         ${folder_headers}
         ${graph_source}
