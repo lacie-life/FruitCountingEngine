@@ -30,6 +30,15 @@ public:
 private:
     detectNet* net;
 
+    int line1_x1;
+    int line1_x2;
+    int line1_y1;
+    int line1_y2;
+    int line2_x1;
+    int line2_x2;
+    int line2_y1;
+    int line2_y2;
+
 protected:
     std::vector<vector<float>> detectFrame(cv::Mat frame);
     void DrawData(cv::Mat frame, int framesCounter, double fontScale);
