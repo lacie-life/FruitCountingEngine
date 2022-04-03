@@ -6,7 +6,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-write-strings -Wno-depre
 set(SPECIAL_OS_LIBS "pthread" "X11")
 
 find_package(OpenCV REQUIRED)
+
 include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories(${Caffe_INCLUDE_DIRS})
 
 include(CheckIncludeFileCXX)
 check_include_file_cxx(opencv2/bgsegm.hpp HAVE_OPENCV_CONTRIB)
@@ -22,6 +24,7 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/Tracker/graph/GTL/include
 )
 
+add_definitions(${Caffe_DEFINITIONS})
 option(USE_OPENCV "Build with OpenCV support" ON)
 if(HAVE_OPENCV_CONTRIB)
     add_definitions(-DHAVE_OPENCV_CONTRIB)
