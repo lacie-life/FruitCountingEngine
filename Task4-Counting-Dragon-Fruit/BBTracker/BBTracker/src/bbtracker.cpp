@@ -4,9 +4,48 @@
 
 #include "bbtracker.h"
 
-BBTracker::BBTracker(commandLine cmdLine) : pipeline(parser)
+BBTracker::BBTracker(commandLine cmdLine, cv::CommandLineParser &parser) : pipeline(parser)
 {
+
+    meanFile = FLAGS_mean_file;
+    meanValue = FLAGS_mean_value;
+    line1_x1 = parser.get<int>("l1p1_x");
+    line1_x2 = parser.get<int>("l1p2_x");
+    line1_y1 = parser.get<int>("l1p1_y");
+    line1_y2 = parser.get<int>("l1p2_y");
+    line2_x1 = parser.get<int>("l2p1_x");
+    line2_x2 = parser.get<int>("l2p2_x");
+    line2_y1 = parser.get<int>("l2p1_y");
+    line2_y2 = parser.get<int>("l2p2_y");
+
     // TODO: Init detectNet, pipeline param
+    net = detectNet::Create(cmdLine);
+
+    if(!net)
+    {
+        LOG(FATAL) << "failed to load detectNet model";
+        return 0;
+    }
+
+    overlayFlags  = detectNet::OverlayFlagsFromStr(cmdLine.GetString("overlay", "box, labels, conf"));
+
+    // Initialize the tracker
+    config_t config;
+
+    // TODO: put these variables in main
+    TrackerSettings settings;
+    settings.m_distType = tracking::DistRects;
+    settings.m_kalmanType = tracking::KalmanLinear;
+    settings.m_filterGoal = tracking::FilterRect;
+    settings.m_lostTrackType = tracking::TrackKCF;       // Use KCF tracker for collisions resolving
+    settings.m_matchType = tracking::MatchHungrian;
+    settings.m_dt = 0.3f;                                // Delta time for Kalman filter
+    settings.m_accelNoiseMag = 0.1f;                     // Accel noise magnitude for Kalman filter
+    settings.m_distThres = 100;                          // Distance threshold between region and object on two frames
+    settings.m_maximumAllowedSkippedFrames = (size_t)(1 * m_fps);  // Maximum allowed skipped frames
+    settings.m_maxTraceLength = (size_t)(5 * m_fps);               // Maximum trace length
+
+    m_tracker = std::make_unique<CTracker>(settings);
 }
 
 std::vector<vector<float>> BBTracker::detectframe(cv::Mat frame)

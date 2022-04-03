@@ -25,10 +25,14 @@
 
 class BBTracker : public pipeline{
 public:
-    BBTracker(commandLine cmdLine);
+    BBTracker(commandLine cmdLine, const cv::CommandLineParser &parser);
 
 private:
     detectNet* net;
+    uint32_t overlayFlags;
+
+    std::string meanFile;
+    std::string meanValue;
 
     int line1_x1;
     int line1_x2;
