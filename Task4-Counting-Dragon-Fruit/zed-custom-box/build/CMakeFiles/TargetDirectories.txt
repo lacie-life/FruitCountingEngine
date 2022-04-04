@@ -1,3 +1,0 @@
-/home/jun/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/zed-custom-box/build/CMakeFiles/rebuild_cache.dir
-/home/jun/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/zed-custom-box/build/CMakeFiles/yolov5_zed.dir
-/home/jun/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/zed-custom-box/build/CMakeFiles/edit_cache.dir

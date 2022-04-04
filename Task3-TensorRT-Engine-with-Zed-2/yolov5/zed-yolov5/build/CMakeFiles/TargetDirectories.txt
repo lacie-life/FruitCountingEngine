@@ -1,3 +1,0 @@
-/home/jun/Github/Master-Thesis/Task3-TensorRT-Engine-with-Zed-2/yolov5/zed-yolov5/build/CMakeFiles/rebuild_cache.dir
-/home/jun/Github/Master-Thesis/Task3-TensorRT-Engine-with-Zed-2/yolov5/zed-yolov5/build/CMakeFiles/detect.dir
-/home/jun/Github/Master-Thesis/Task3-TensorRT-Engine-with-Zed-2/yolov5/zed-yolov5/build/CMakeFiles/edit_cache.dir
