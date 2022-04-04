@@ -1,0 +1,12 @@
+/usr/local/share/pkgconfig/yolov5-tensorrt.pc
+/usr/local/lib/libyolov5-tensorrt.so
+/usr/local/include/yolov5-tensorrt/yolov5_builder.hpp
+/usr/local/include/yolov5-tensorrt/yolov5_common.hpp
+/usr/local/include/yolov5-tensorrt/yolov5_detection.hpp
+/usr/local/include/yolov5-tensorrt/yolov5_detector.hpp
+/usr/local/include/yolov5-tensorrt/yolov5_detector_internal.hpp
+/usr/local/include/yolov5-tensorrt/yolov5_logging.hpp
+/usr/local/bin/build_engine
+/usr/local/bin/process_image
+/usr/local/bin/process_batch
+/usr/local/bin/process_live
