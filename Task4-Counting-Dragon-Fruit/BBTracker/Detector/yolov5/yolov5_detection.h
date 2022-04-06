@@ -70,11 +70,7 @@ class ObjectDetection
         cudaStream_t stream;
         void* buffers[2];
 
-        sl::Mat left_sl;
         cv::Mat left_cv_rgb;
-        sl::ObjectDetectionRuntimeParameters objectTracker_parameters_rt;
-        sl::Objects objects;
-        sl::Pose cam_w_pose;
 };
 
 #endif

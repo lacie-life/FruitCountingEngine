@@ -45,3 +45,11 @@ target_link_libraries(bbtracker ${OpenCV_LIBS}
                                 tracker 
                                 ${CUDA_CUDA_LIBRARY} 
                                 ${ZED_LIBRARIES})
+
+add_executable(detector_test Test/detector_test.cpp)
+
+target_link_libraries(detector_test ${OpenCV_LIBS} 
+                                detector 
+                                tracker 
+                                ${CUDA_CUDA_LIBRARY} 
+                                ${ZED_LIBRARIES})
