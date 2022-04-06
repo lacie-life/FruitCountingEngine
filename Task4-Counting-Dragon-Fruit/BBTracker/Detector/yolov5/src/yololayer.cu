@@ -1,8 +1,8 @@
 #include <assert.h>
 #include <vector>
 #include <iostream>
-#include "yololayer.h"
-#include "cuda_utils.h"
+#include "../include/yololayer.h"
+#include "../include/cuda_utils.h"
 
 namespace Tn
 {

@@ -1,7 +1,7 @@
 #include <iostream>
 #include "det_and_track.h"
-#include "opencv2/objdetect/objdetect.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
+#include <opencv2/objdetect/objdetect.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 DetAndTrack::DetAndTrack(const std::string _model_path):
     get_new_detection_(false),

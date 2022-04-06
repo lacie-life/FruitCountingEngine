@@ -13,7 +13,7 @@ class TrackerManager;
 #include <mutex>
 
 #include "lk_tracker.h"
-#include "Detector/yolov5/yolov5_detection.h" 
+#include "yolov5_detection.h" 
 
 class DetAndTrack
 {

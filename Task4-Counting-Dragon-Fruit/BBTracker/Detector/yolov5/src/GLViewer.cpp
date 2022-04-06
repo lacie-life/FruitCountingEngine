@@ -1,4 +1,4 @@
-#include "GLViewer.hpp"
+#include "../include/GLViewer.hpp"
 #include <random>
 
 
