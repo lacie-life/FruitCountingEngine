@@ -4,9 +4,6 @@ project(bbtracker)
 
 add_definitions(-std=c++11)
 
-add_subdirectory(Detector)
-add_subdirectory(Tracker)
-
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -15,16 +12,22 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -pthread")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-# cuda
+add_subdirectory(Detector)
+add_subdirectory(Tracker)
+
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
+find_package(CUDA REQUIRED)
+include_directories(${CUDA_INCLUDE_DIRS})
+link_directories(${CUDA_LIBRARY_DIRS})
+
 include_directories(/usr/local/cuda/include)
 link_directories(/usr/local/cuda/lib64)
 
-# tensorrt
-include_directories(/usr/include/x86_64-linux-gnu/)
-link_directories(/usr/lib/x86_64-linux-gnu/)
-
-find_package( OpenCV REQUIRED )
-include_directories(${OpenCV_INCLUDE_DIRS})
+find_package(ZED 3 REQUIRED)
+include_directories(${ZED_INCLUDE_DIRS})
+link_directories(${ZED_LIBRARY_DIR})
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND OR OPENMP_FOUND)
@@ -36,4 +39,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Detector/yolov5)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Tracker)
 
 add_executable(bbtracker main.cpp)
-target_link_libraries(bbtracker ${OpenCV_LIBS} detector tracker)
+
+target_link_libraries(bbtracker ${OpenCV_LIBS} 
+                                detector 
+                                tracker 
+                                ${CUDA_CUDA_LIBRARY} 
+                                ${ZED_LIBRARIES})

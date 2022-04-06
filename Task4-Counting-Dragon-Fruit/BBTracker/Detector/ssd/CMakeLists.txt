@@ -1,11 +1,8 @@
-#cmake_minimum_required(VERSION 2.8)
-
-#project(pedistrian_detection)
+cmake_minimum_required(VERSION 2.8)
 
 set(CMAKE_BUILD_TYPE Release)
 
 find_package( OpenCV REQUIRED )
-#find_package(OpenCV REQUIRED core highgui imgproc)
 
 if (NOT OpenCV_FOUND)
     message(FATAL_ERROR "opencv Not Found!")
