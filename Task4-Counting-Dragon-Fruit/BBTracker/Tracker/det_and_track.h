@@ -13,7 +13,7 @@ class TrackerManager;
 #include <mutex>
 
 #include "lk_tracker.h"
-#include "object_detection.h" 
+#include "Detector/yolov5/yolov5_detection.h" 
 
 class DetAndTrack
 {
@@ -36,8 +36,8 @@ class DetAndTrack
 
     public:
         std::mutex mutex_;
-        DetAndTrack();
-        DetAndTrack(int _detection_sleep_time, int _track_sleep_time);
+        DetAndTrack(const std::string _model_path);
+        DetAndTrack(const std::string _model_path, int _detection_sleep_time, int _track_sleep_time);
         void detectionTask();
         void trackTask();
         

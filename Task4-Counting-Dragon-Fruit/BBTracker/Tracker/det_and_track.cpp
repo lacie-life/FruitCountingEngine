@@ -3,24 +3,24 @@
 #include "opencv2/objdetect/objdetect.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
-DetAndTrack::DetAndTrack():
+DetAndTrack::DetAndTrack(const std::string _model_path):
     get_new_detection_(false),
     first_time_detection_(true)
 {
     //face_cascade_.load("../haarcascade_frontalface_alt.xml");
     detection_sleep_time_ = 100;
     track_sleep_time_ = 2;
-    object_detection_ptr_ = new ObjectDetection("../pedestrian_detection/");
+    object_detection_ptr_ = new ObjectDetection(_model_path);
 }
 
-DetAndTrack::DetAndTrack(int _detection_sleep_time, int _track_sleep_time):
+DetAndTrack::DetAndTrack(const std::string _model_path, int _detection_sleep_time, int _track_sleep_time):
     get_new_detection_(false),
     first_time_detection_(true),
     detection_sleep_time_(_detection_sleep_time),
     track_sleep_time_(_track_sleep_time)
 {
     //face_cascade_.load("../haarcascade_frontalface_alt.xml");
-    object_detection_ptr_ = new ObjectDetection("../pedestrian_detection/");
+    object_detection_ptr_ = new ObjectDetection(_model_path);
 }
 
 void DetAndTrack::detectionTask()
