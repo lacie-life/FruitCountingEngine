@@ -26,7 +26,6 @@ class DetAndTrack
     cv::Mat current_frame_;
     //cv::Mat last_frame_;
 
-    //cv::CascadeClassifier face_cascade_;
     ObjectDetection* object_detection_ptr_;
 
     TrackerManager* track_manager_ptr_; 
