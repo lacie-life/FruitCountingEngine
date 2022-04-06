@@ -1,175 +1,94 @@
-cmake_minimum_required(VERSION 3.0)
-project(bb_tracking)
+cmake_minimum_required(VERSION 3.2)
 
-# setup build flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-write-strings -Wno-deprecated-declarations -Wno-format-extra-args")	# -std=c++14
-set(SPECIAL_OS_LIBS "pthread" "X11")
+project(bbtracker)
 
+option(LINK_SHARED_ZED "Link with the ZED SDK shared executable" ON)
+
+if (NOT LINK_SHARED_ZED AND MSVC)
+    message(FATAL_ERROR "LINK_SHARED_ZED OFF : ZED SDK static libraries not available on Windows")
+endif()
+
+if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
+set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+endif()
+
+set(EXECUTABLE_OUTPUT_PATH ".")
+set(SPECIAL_OS_LIBS "")
+
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -pthread")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
+find_package(ZED 3 REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(GLUT REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(CUDA REQUIRED)
+find_package(Threads REQUIRED)
+
+
+IF(NOT WIN32)
+    set(SPECIAL_OS_LIBS "pthread" "X11")
+    add_definitions(-Wno-write-strings)
+ENDIF()
 
 include_directories(${OpenCV_INCLUDE_DIRS})
-include_directories(${Caffe_INCLUDE_DIRS})
+include_directories(${ZED_INCLUDE_DIRS})
+include_directories(${GLEW_INCLUDE_DIRS})
+include_directories(${GLUT_INCLUDE_DIR})
+include_directories(${CUDA_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Tracker)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Detector/yolov5)
 
-include(CheckIncludeFileCXX)
-check_include_file_cxx(opencv2/bgsegm.hpp HAVE_OPENCV_CONTRIB)
+link_directories(${ZED_LIBRARY_DIR})
+link_directories(${GLEW_LIBRARY_DIRS})
+link_directories(${GLUT_LIBRARY_DIRS})
+link_directories(${OpenGL_LIBRARY_DIRS})
+link_directories(${CUDA_LIBRARY_DIRS})
+link_directories(${OpenCV_LIBRARY_DIRS})
+# cuda
+include_directories(/usr/local/cuda/include)
+link_directories(/usr/local/cuda/lib64)
+# tensorrt
+include_directories(/usr/include/x86_64-linux-gnu/)
+link_directories(/usr/lib/x86_64-linux-gnu/)
 
-find_package (glog 0.6.0 REQUIRED)
+FILE(GLOB_RECURSE SRC_FILES Detector/yolov5/src/*.c*
+                            Detector/yolov5/yolov5_detection.cpp
+                            Tracker/*.cpp
+                            main.cpp)
+FILE(GLOB_RECURSE HDR_FILES Detector/yolov5/include/*.h*
+                            Detector/yolov5/include/yolov5_detection.h
+                            Tracker/*.h)
 
-include_directories(
-        ${PROJECT_SOURCE_DIR}/BBTracker/src
-        ${PROJECT_SOURCE_DIR}/BBTracker/include
-        ${PROJECT_SOURCE_DIR}/Tracker
-        ${PROJECT_SOURCE_DIR}/Tracker/HungarianAlg
-        ${PROJECT_SOURCE_DIR}/Tracker/graph
-        ${PROJECT_SOURCE_DIR}/Tracker/graph/GTL/include
-)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std=c++11)
 
-add_definitions(${Caffe_DEFINITIONS})
-option(USE_OPENCV "Build with OpenCV support" ON)
-if(HAVE_OPENCV_CONTRIB)
-    add_definitions(-DHAVE_OPENCV_CONTRIB)
+cuda_add_executable(${PROJECT_NAME} ${HDR_FILES} ${SRC_FILES})
 
-    option(USE_OCV_BGFG "Should use the bgfg algorithms from opencv_contrib?" ON)
-    option(USE_OCV_KCF "Should use the KCF tracker from opencv_contrib for collisions resolving?" ON)
-    option(USE_OCV_UKF "Should use the Unscented Kalman Filterr from opencv_contrib?" ON)
+add_definitions(-std=c++14 -g -O3 -D_MWAITXINTRIN_H_INCLUDED -Wno-deprecated-declarations)
 
-else(HAVE_OPENCV_CONTRIB)
 
-    option(USE_OCV_BGFG "Should use the bgfg algorithms from opencv_contrib?" OFF)
-    option(USE_OCV_KCF "Should use the KCF tracker from opencv_contrib for collisions resolving?" OFF)
-    option(USE_OCV_UKF "Should use the Unscented Kalman Filterr from opencv_contrib?" OFF)
-endif(HAVE_OPENCV_CONTRIB)
+if (LINK_SHARED_ZED)
+    SET(ZED_LIBS ${ZED_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
+else()
+    SET(ZED_LIBS ${ZED_STATIC_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_LIBRARY})
+endif()
 
-if(USE_OCV_UKF)
-    add_definitions(-DUSE_OCV_UKF)
-endif(USE_OCV_UKF)
+SET(TRT_LIBS nvinfer)
 
-if(USE_OCV_KCF)
-    add_definitions(-DUSE_OCV_KCF)
-endif(USE_OCV_KCF)
+target_link_libraries(${PROJECT_NAME}
+                        ${TRT_LIBS}
+                        ${SPECIAL_OS_LIBS}
+                        ${ZED_LIBS}
+                        ${OPENGL_LIBRARIES}
+                        ${GLUT_LIBRARY}
+                        ${GLEW_LIBRARIES}
+                        ${OpenCV_LIBRARIES}
+                        ${CUDA_CUDA_LIBRARY} 
+                        ${CUDA_CUDART_LIBRARY})
 
-if(USE_OCV_BGFG)
-    add_definitions(-DUSE_OCV_BGFG)
-endif(USE_OCV_BGFG)
-
-set(CMAKE_CXX_STANDARD 14)
-
-set(graph_source
-        Tracker/graph/tokenise.cpp
-        Tracker/graph/mytree.cpp
-        Tracker/graph/mygraph.cpp
-        Tracker/graph/mwbmatching.cpp
-        Tracker/graph/mincut.cpp
-        Tracker/graph/gport.cpp
-        Tracker/graph/fheap.c)
-
-set(graph_header
-        Tracker/graph/tokenise.h
-        Tracker/graph/mytree.h
-        Tracker/graph/mygraph.h
-        Tracker/graph/mwbmatching.h
-        Tracker/graph/mincut.h
-        Tracker/graph/gport.h
-        Tracker/graph/gdefs.h
-        Tracker/graph/fheap.h)
-
-set(gtl_source
-        Tracker/graph/GTL/src/bellman_ford.cpp
-        Tracker/graph/GTL/src/bfs.cpp
-        Tracker/graph/GTL/src/biconnectivity.cpp
-        Tracker/graph/GTL/src/bid_dijkstra.cpp
-        Tracker/graph/GTL/src/components.cpp
-        Tracker/graph/GTL/src/debug.cpp
-        Tracker/graph/GTL/src/dfs.cpp
-        Tracker/graph/GTL/src/dijkstra.cpp
-        Tracker/graph/GTL/src/edge.cpp
-        Tracker/graph/GTL/src/embedding.cpp
-        Tracker/graph/GTL/src/fm_partition.cpp
-        Tracker/graph/GTL/src/gml_parser.cpp
-        Tracker/graph/GTL/src/gml_scanner.cpp
-        Tracker/graph/GTL/src/graph.cpp
-        Tracker/graph/GTL/src/maxflow_ff.cpp
-        Tracker/graph/GTL/src/maxflow_pp.cpp
-        Tracker/graph/GTL/src/maxflow_sap.cpp
-        Tracker/graph/GTL/src/min_tree.cpp
-        Tracker/graph/GTL/src/node.cpp
-        Tracker/graph/GTL/src/planarity.cpp
-        Tracker/graph/GTL/src/pq_node.cpp
-        Tracker/graph/GTL/src/pq_tree.cpp
-        Tracker/graph/GTL/src/ratio_cut_partition.cpp
-        Tracker/graph/GTL/src/st_number.cpp
-        Tracker/graph/GTL/src/topsort.cpp)
-
-set(gtl_header
-        Tracker/graph/GTL/include/GTL/algorithm.h
-        Tracker/graph/GTL/include/GTL/bellman_ford.h
-        Tracker/graph/GTL/include/GTL/bfs.h
-        Tracker/graph/GTL/include/GTL/biconnectivity.h
-        Tracker/graph/GTL/include/GTL/bid_dijkstra.h
-        Tracker/graph/GTL/include/GTL/bin_heap.h
-        Tracker/graph/GTL/include/GTL/components.h
-        Tracker/graph/GTL/include/GTL/debug.h
-        Tracker/graph/GTL/include/GTL/dfs.h
-        Tracker/graph/GTL/include/GTL/dijkstra.h
-        Tracker/graph/GTL/include/GTL/edge.h
-        Tracker/graph/GTL/include/GTL/edge_data.h
-        Tracker/graph/GTL/include/GTL/edge_map.h
-        Tracker/graph/GTL/include/GTL/embedding.h
-        Tracker/graph/GTL/include/GTL/fm_partition.h
-        Tracker/graph/GTL/include/GTL/gml_parser.h
-        Tracker/graph/GTL/include/GTL/gml_scanner.h
-        Tracker/graph/GTL/include/GTL/graph.h
-        Tracker/graph/GTL/include/GTL/maxflow_ff.h
-        Tracker/graph/GTL/include/GTL/maxflow_pp.h
-        Tracker/graph/GTL/include/GTL/maxflow_sap.h
-        Tracker/graph/GTL/include/GTL/min_tree.h
-        Tracker/graph/GTL/include/GTL/ne_map.h
-        Tracker/graph/GTL/include/GTL/node.h
-        Tracker/graph/GTL/include/GTL/node_data.h
-        Tracker/graph/GTL/include/GTL/node_map.h
-        Tracker/graph/GTL/include/GTL/planarity.h
-        Tracker/graph/GTL/include/GTL/pq_node.h
-        Tracker/graph/GTL/include/GTL/pq_tree.h
-        Tracker/graph/GTL/include/GTL/ratio_cut_partition.h
-        Tracker/graph/GTL/include/GTL/st_number.h
-        Tracker/graph/GTL/include/GTL/symlist.h
-        Tracker/graph/GTL/include/GTL/topsort.h
-        Tracker/graph/GTL/include/GTL/version.h
-        Tracker/graph/GTL/include/GTL/GTL.h)
-
-set(folder_headers
-        Tracker/Ctracker.h
-        Tracker/track.h
-        Tracker/HungarianAlg/HungarianAlg.h
-        Tracker/LocalTracker.h
-        Tracker/Kalman.h)
-set(folder_source
-        Tracker/Ctracker.cpp
-        Tracker/track.cpp
-        Tracker/HungarianAlg/HungarianAlg.cpp
-        Tracker/LocalTracker.cpp
-        Tracker/Kalman.cpp )
-
-add_executable(${PROJECT_NAME}
-        main.cpp
-        BBTracker/include/pipeline.h
-        BBTracker/src/ssd_detect.cpp
-        BBTracker/include/ssd_detect.h
-        BBTracker/include/defines.h
-        BBTracker/include/nms.h
-        BBTracker/src/bbtracker.cpp
-        BBTracker/include/bbtracker.h
-        ${folder_source}
-        ${folder_headers}
-        ${graph_source}
-        ${graph_header}
-        ${gtl_source}
-        ${gtl_header})
-
-source_group("Source Files" FILES ${folder_source})
-source_group("Header Files" FILES ${folder_headers})
-
-source_group("graph" FILES ${graph_source} ${graph_header})
-source_group("GTL" FILES ${gtl_source} ${gtl_header})
-
-target_link_libraries(bb_tracking ${OpenCV_LIBS} glog::glog)
+if(INSTALL_SAMPLES)
+    LIST(APPEND SAMPLE_LIST ${PROJECT_NAME})
+    SET(SAMPLE_LIST "${SAMPLE_LIST}" PARENT_SCOPE)
+endif()
