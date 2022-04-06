@@ -18,6 +18,8 @@
 ## Tasks
 
 - [ ] Model dragon fruit detection (SSD-Mobilenet-v2/Yolov5)
+  - [x] Train test
+  - [ ] Dataset (Finding)
   - [ ] Evaluate model
   - [ ] Improve model
 - [ ] Record data 
@@ -29,10 +31,11 @@
 - [ ] Implement model in Jetson AGX and ZED 2  
   - [x] Run TenserRT Engine in ZED 2 Video stream 
     - [x] Build and Run
-    - [x] Fixing crash (finding bug) 
+    - [x] Fixing crash (fixed bug => ZED SDK 3.6.5) 
   - [ ] Bounding Box Tracker
-    - [ ] ZED 2 custom box tracker (checking)
+    - [ ] ZED 2 custom box tracker (pending)
     - [ ] SSD-Tracker (pending)
+    - [x] LK Tracker (accuracy too low => check LK tracker) 
   - [ ] Counting Fruit (trying bounding box optical flow and SfM)
   - [ ] Improve Tracking and Counting Algorithm
  
