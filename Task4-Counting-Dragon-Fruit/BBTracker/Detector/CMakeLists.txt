@@ -1,11 +1,18 @@
 cmake_minimum_required(VERSION 2.4)
-PROJECT(detector)
+
+project(detector)
 
 option(LINK_SHARED_ZED "Link with the ZED SDK shared executable" ON)
 
 if (NOT LINK_SHARED_ZED AND MSVC)
     message(FATAL_ERROR "LINK_SHARED_ZED OFF : ZED SDK static libraries not available on Windows")
 endif()
+
+if(COMMAND cmake_policy)
+	cmake_policy(SET CMP0003 OLD)
+	cmake_policy(SET CMP0004 OLD)
+	cmake_policy(SET CMP0015 OLD)
+endif(COMMAND cmake_policy)
 
 if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
     SET(CMAKE_BUILD_TYPE "RelWithDebInfo")
@@ -22,7 +29,7 @@ find_package(OpenGL REQUIRED)
 find_package(CUDA REQUIRED)
 
 IF(NOT WIN32)
-     SET(SPECIAL_OS_LIBS "pthread" "X11")
+    SET(SPECIAL_OS_LIBS "pthread" "X11")
     add_definitions(-Wno-write-strings)
 ENDIF()
 
@@ -39,9 +46,11 @@ link_directories(${GLUT_LIBRARY_DIRS})
 link_directories(${OpenGL_LIBRARY_DIRS})
 link_directories(${CUDA_LIBRARY_DIRS})
 link_directories(${OpenCV_LIBRARY_DIRS})
+
 # cuda
 include_directories(/usr/local/cuda/include)
 link_directories(/usr/local/cuda/lib64)
+
 # tensorrt
 include_directories(/usr/include/x86_64-linux-gnu/)
 link_directories(/usr/lib/x86_64-linux-gnu/)
@@ -52,7 +61,9 @@ FILE(GLOB_RECURSE HDR_FILES yolov5/include/*.h*
                             yolov5/yolov5_detection.cpp)
 
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std=c++11)
-add_library((${PROJECT_NAME} SHARED ${HDR_FILES} ${SRC_FILES})
+
+cuda_add_library(${PROJECT_NAME} SHARED ${HDR_FILES} ${SRC_FILES})
+
 add_definitions(-std=c++14 -g -O3 -D_MWAITXINTRIN_H_INCLUDED -Wno-deprecated-declarations)
 
 if (LINK_SHARED_ZED)
@@ -71,7 +82,10 @@ target_link_libraries(${PROJECT_NAME}
                         ${GLUT_LIBRARY}
                         ${GLEW_LIBRARIES}
                         ${OpenCV_LIBRARIES}
-                        ${CUDA_CUDA_LIBRARY} 
-                        ${CUDA_CUDART_LIBRARY}
-                        )
+                        ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
+
+if(INSTALL_SAMPLES)
+    LIST(APPEND SAMPLE_LIST ${PROJECT_NAME})
+    SET(SAMPLE_LIST "${SAMPLE_LIST}" PARENT_SCOPE)
+endif()
 
