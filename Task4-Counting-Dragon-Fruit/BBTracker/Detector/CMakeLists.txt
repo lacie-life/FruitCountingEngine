@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 2.4)
 
-project(detector)
-
 option(LINK_SHARED_ZED "Link with the ZED SDK shared executable" ON)
 
 if (NOT LINK_SHARED_ZED AND MSVC)
@@ -62,7 +60,7 @@ FILE(GLOB_RECURSE HDR_FILES yolov5/include/*.h*
 
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std=c++11)
 
-cuda_add_library(${PROJECT_NAME} SHARED ${HDR_FILES} ${SRC_FILES})
+cuda_add_library(detector SHARED ${HDR_FILES} ${SRC_FILES})
 
 add_definitions(-std=c++14 -g -O3 -D_MWAITXINTRIN_H_INCLUDED -Wno-deprecated-declarations)
 
@@ -74,7 +72,7 @@ endif()
 
 SET(TRT_LIBS nvinfer)
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(detector
                         ${TRT_LIBS}
                         ${SPECIAL_OS_LIBS}
                         ${ZED_LIBS}
@@ -84,8 +82,5 @@ target_link_libraries(${PROJECT_NAME}
                         ${OpenCV_LIBRARIES}
                         ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
 
-if(INSTALL_SAMPLES)
-    LIST(APPEND SAMPLE_LIST ${PROJECT_NAME})
-    SET(SAMPLE_LIST "${SAMPLE_LIST}" PARENT_SCOPE)
-endif()
+
 
