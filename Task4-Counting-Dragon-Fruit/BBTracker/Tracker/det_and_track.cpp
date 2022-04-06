@@ -33,7 +33,6 @@ void DetAndTrack::detectionTask()
         mutex_.unlock();
 
         std::vector<cv::Rect> local_boxes = object_detection_ptr_->detectObject(local_frame);
-        //face_cascade_.detectMultiScale(local_frame, local_boxes, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, cv::Size(30,30)); 
         std::this_thread::sleep_for(std::chrono::milliseconds(detection_sleep_time_));
         
         std::lock_guard<std::mutex> lockGuard(mutex_);
