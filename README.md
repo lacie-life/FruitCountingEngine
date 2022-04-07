@@ -1,8 +1,12 @@
 # Master-Thesis
 
-## Name: Dragon fruit yield estimation system using UAV
+## Name: 
 
-## Motivation: Building a camera module mounted on a UAV that collects data on images of dragon fruit and gives an estimate of dragon fruit production
+Dragon fruit yield estimation system using UAV
+
+## Motivation: 
+
+Building a camera module mounted on a UAV that collects data on images of dragon fruit and gives an estimate of dragon fruit production
 
 ## Hardware
 
