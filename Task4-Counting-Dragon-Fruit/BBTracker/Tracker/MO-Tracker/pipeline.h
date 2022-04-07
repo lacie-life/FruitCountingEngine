@@ -15,6 +15,8 @@
 #include <algorithm>
 
 #include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/video.hpp>
 
 #include "yolov5_detection.h"
 #include "defines.h"
@@ -44,7 +46,6 @@ public:
         detectThreshold = parser.get<float>("threshold");
         desiredDetect = parser.get<bool>("desired_detect");
         desiredObjectsString = parser.get<std::string>("desired_objects");
-
 
         if (!parser.check())
         {
@@ -77,12 +78,15 @@ public:
             desiredObjects.push_back( std::stof(substring) );
         }
 
+        std::cout << inFile << std::endl;
 
         // Set up input
         cv::VideoCapture cap(inFile);
+
         if (!cap.isOpened()) {
             std::cout << "Failed to open video: " << inFile << std::endl;
         }
+        
         cv::Mat frame;
         int frameCount = 0;
 
@@ -90,18 +94,12 @@ public:
         cv::VideoWriter writer;
         auto frame_width = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_WIDTH));
         auto frame_height = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_HEIGHT));
-        if(useCrop)
-        {
-            writer.open(outFile, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), m_fps, cv::Size(cropFrameWidth, cropFrameHeight), true);
-        }
-        else
-        {
-            writer.open(outFile, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), m_fps, cv::Size(frame_width, frame_height), true);
-        }
+
+        std::cout << "Frame Infor: " << frame_width << " " << frame_height << std::endl;
 
         std::map <string,  int> countObjects_LefttoRight;
         std::map <string,  int> countObjects_RighttoLeft;
-        double fontScale = CalculateRelativeSize(frame_width, frame_height);
+        double fontScale = CalculateRelativeSize(1920, 1080);
 
         double tFrameModification = 0;
         double tDetection = 0;
@@ -114,11 +112,16 @@ public:
         while (true) {
 
             double tStartFrameModification = cv::getTickCount();
+
             bool success = cap.read(frame);
+
+            cv::imshow("Video", frame);
+
             if (!success) {
                 std::cout << "Process " << frameCount << " frames from " << inFile << std::endl;
                 break;
             }
+
             if(frameCount < startFrame)
             {
                 continue;
@@ -132,6 +135,7 @@ public:
             if(!frame.empty())
             {
                 std::cout << "Error when read frame" << std::endl;
+                // break;
             } 
 
             // Focus on interested area in the frame
@@ -184,7 +188,7 @@ public:
                     cv::Rect object(xLeftBottom, yLeftBottom, xRightTop - xLeftBottom, yRightTop - yLeftBottom);
                     tmpRegions.push_back(CRegion(object, label, score));
                 }
-                //cv::imshow("Video", frame);
+                // cv::imshow("Video", frame);
             }
             tDetection += cv::getTickCount() - tStartDetection;
 
@@ -212,10 +216,6 @@ public:
                 DrawData(frame, frameCount, fontScale);
             }
 
-            if (writer.isOpened() and saveVideo)
-            {
-                writer << frame;
-            }
             ++frameCount;
         }
         if (cap.isOpened()) {

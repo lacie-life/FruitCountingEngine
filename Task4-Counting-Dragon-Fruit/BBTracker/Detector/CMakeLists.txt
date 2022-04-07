@@ -20,7 +20,7 @@ SET(EXECUTABLE_OUTPUT_PATH ".")
 SET(SPECIAL_OS_LIBS "")
 
 find_package(ZED 3 REQUIRED)
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 4 REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)

@@ -16,7 +16,7 @@ add_subdirectory(Detector)
 add_subdirectory(Tracker)
 
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 4 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 find_package(CUDA REQUIRED)
@@ -51,19 +51,19 @@ target_link_libraries(bbtracker ${OpenCV_LIBS}
 add_executable(detector_test Test/detector_test.cpp)
 
 target_link_libraries(detector_test ${OpenCV_LIBS} 
-                                detector 
-                                lk-tracker
-                                mo-tracker 
-                                ${CUDA_CUDA_LIBRARY} 
-                                ${ZED_LIBRARIES})
+                                    detector 
+                                    lk-tracker
+                                    mo-tracker 
+                                    ${CUDA_CUDA_LIBRARY} 
+                                    ${ZED_LIBRARIES})
 
 add_executable(mo_tracker_test Test/mo_tracker_test.cpp)
 
 target_link_libraries(mo_tracker_test ${OpenCV_LIBS} 
-                                detector 
-                                lk-tracker
-                                mo-tracker 
-                                ${CUDA_CUDA_LIBRARY} 
-                                ${ZED_LIBRARIES})
+                                      detector 
+                                      lk-tracker
+                                      mo-tracker 
+                                      ${CUDA_CUDA_LIBRARY} 
+                                      ${ZED_LIBRARIES})
 
 

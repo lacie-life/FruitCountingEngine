@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 4 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 
@@ -15,19 +15,12 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/graph/GTL/include)
 
 option(USE_OPENCV "Build with OpenCV support" ON)
-if(HAVE_OPENCV_CONTRIB)
-    add_definitions(-DHAVE_OPENCV_CONTRIB)
 
-    option(USE_OCV_BGFG "Should use the bgfg algorithms from opencv_contrib?" ON)
-    option(USE_OCV_KCF "Should use the KCF tracker from opencv_contrib for collisions resolving?" ON)
-    option(USE_OCV_UKF "Should use the Unscented Kalman Filterr from opencv_contrib?" ON)
+add_definitions(-DHAVE_OPENCV_CONTRIB)
 
-else(HAVE_OPENCV_CONTRIB)
-
-    option(USE_OCV_BGFG "Should use the bgfg algorithms from opencv_contrib?" OFF)
-    option(USE_OCV_KCF "Should use the KCF tracker from opencv_contrib for collisions resolving?" OFF)
-    option(USE_OCV_UKF "Should use the Unscented Kalman Filterr from opencv_contrib?" OFF)
-endif(HAVE_OPENCV_CONTRIB)
+option(USE_OCV_BGFG "Should use the bgfg algorithms from opencv_contrib?" ON)
+option(USE_OCV_KCF "Should use the KCF tracker from opencv_contrib for collisions resolving?" ON)
+option(USE_OCV_UKF "Should use the Unscented Kalman Filterr from opencv_contrib?" ON)
 
 if(USE_OCV_UKF)
     add_definitions(-DUSE_OCV_UKF)

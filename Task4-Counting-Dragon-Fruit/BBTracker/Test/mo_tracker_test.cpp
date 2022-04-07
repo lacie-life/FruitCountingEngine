@@ -7,7 +7,7 @@
 const char* keys =
         {
                 "{help h usage ?  |                    | Print usage| }"
-                "{ @input_video   |/home/jun/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BBTracker/MOT17-11.mp4  | Input video file | }"
+                "{ @input_video   |/home/jun/Downloads/videoplayback.mp4  | Input video file | }"
                 "{ e  example     |0                   | Number of example: 0 - SSD }"
                 "{ ocl opencl     |1                   | Flag to use opencl | }"
 
