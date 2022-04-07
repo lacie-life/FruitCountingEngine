@@ -20,6 +20,8 @@
 #include "defines.h"
 #include "Ctracker.h"
 
+using namespace std;
+
 class Pipeline
 {
 public:
@@ -70,29 +72,24 @@ public:
         std::stringstream ss(desiredObjectsString);
         while( ss.good() )
         {
-            string substring;
+            std::string substring;
             getline( ss, substring, ',' );
             desiredObjects.push_back( std::stof(substring) );
         }
 
-        LOG(INFO) << "Process start" << std::endl;
-
-#ifndef GFLAGS_GFLAGS_H_
-        namespace gflags = google;
-#endif
 
         // Set up input
         cv::VideoCapture cap(inFile);
         if (!cap.isOpened()) {
-            LOG(FATAL) << "Failed to open video: " << inFile;
+            std::cout << "Failed to open video: " << inFile << std::endl;
         }
         cv::Mat frame;
         int frameCount = 0;
 
         // video output
         cv::VideoWriter writer;
-        auto frame_width = static_cast<int>(cap.get(CV_CAP_PROP_FRAME_WIDTH));
-        auto frame_height = static_cast<int>(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+        auto frame_width = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_WIDTH));
+        auto frame_height = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_HEIGHT));
         if(useCrop)
         {
             writer.open(outFile, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), m_fps, cv::Size(cropFrameWidth, cropFrameHeight), true);
@@ -119,7 +116,7 @@ public:
             double tStartFrameModification = cv::getTickCount();
             bool success = cap.read(frame);
             if (!success) {
-                LOG(INFO) << "Process " << frameCount << " frames from " << inFile;
+                std::cout << "Process " << frameCount << " frames from " << inFile << std::endl;
                 break;
             }
             if(frameCount < startFrame)
@@ -132,7 +129,10 @@ public:
                 std::cout << "Process: reached last " << endFrame << " frame" << std::endl;
                 break;
             }
-            CHECK(!frame.empty()) << "Error when read frame";
+            if(!frame.empty())
+            {
+                std::cout << "Error when read frame" << std::endl;
+            } 
 
             // Focus on interested area in the frame
             if (useCrop)
@@ -156,7 +156,7 @@ public:
             for (auto const& detection : detections){
                 const vector<float> &d = detection;
                 // Detection format: [image_id, label, score, xmin, ymin, xmax, ymax].
-                CHECK_EQ(d.size(), 7);
+                // CHECK_EQ(d.size(), 7);
                 const float score = d[2];
                 const float fLabel= d[1];
                 if(desiredDetect)
@@ -242,34 +242,34 @@ public:
         csvFile << "Total time" << ",";
         csvFile << "FDTC frame rate" << ",";
         csvFile << "Total frame rate" << "\n";
-        LOG(INFO)  << "Frame Modification time = " << tFrameModificationRuntTime << " seconds" << std::endl;
+        std::cout  << "Frame Modification time = " << tFrameModificationRuntTime << " seconds" << std::endl;
         csvFile << tFrameModificationRuntTime << ",";
-        LOG(INFO)  << "Detection time = " << detectionRunTime << " seconds" << std::endl;
+        std::cout  << "Detection time = " << detectionRunTime << " seconds" << std::endl;
         csvFile << detectionRunTime << ",";
-        LOG(INFO)  << "Tracking time = " << trackingRunTime << " seconds" << std::endl;
+        std::cout  << "Tracking time = " << trackingRunTime << " seconds" << std::endl;
         csvFile << trackingRunTime<< ",";
-        LOG(INFO)  << "Counting time = " << countingRunTime << " seconds" << std::endl;
+        std::cout  << "Counting time = " << countingRunTime << " seconds" << std::endl;
         csvFile << countingRunTime << ",";
-        LOG(INFO)  << "FDTC time = " << FDTCRuntime << " seconds " << std::endl;
+        std::cout  << "FDTC time = " << FDTCRuntime << " seconds " << std::endl;
         csvFile << FDTCRuntime << ",";
-        LOG(INFO)  << "Total time = " << totalRunTime << " seconds " << std::endl;
+        std::cout  << "Total time = " << totalRunTime << " seconds " << std::endl;
         csvFile << totalRunTime << ",";
-        LOG(INFO)  << " FDTC frame rate: "<< frameCount/FDTCRuntime << " fps" <<std::endl;
+        std::cout  << " FDTC frame rate: "<< frameCount/FDTCRuntime << " fps" <<std::endl;
         csvFile << frameCount/FDTCRuntime  << ",";
-        LOG(INFO)  << " Total frame rate: "<< frameCount/totalRunTime << " fps" << std::endl;
+        std::cout  << " Total frame rate: "<< frameCount/totalRunTime << " fps" << std::endl;
         csvFile << frameCount/totalRunTime << "\n";
-        LOG(INFO)  << "Left to Right or Top to Bottom ";
+        std::cout  << "Left to Right or Top to Bottom ";
         csvFile << "Object label" << "," << "count Left to Right" << "\n";
         for(auto elem : countObjects_LefttoRight)
         {
-            LOG(INFO) << elem.first << " " << elem.second << "\n";
+            std::cout << elem.first << " " << elem.second << "\n";
             csvFile << elem.first << "," << elem.second << "\n";
         }
-        LOG(INFO)  << "Right to Left or Bottom to Top";
+        std::cout  << "Right to Left or Bottom to Top";
         csvFile << "Object label" << "," << "count Right to Left" << "\n";
         for(auto elem : countObjects_RighttoLeft)
         {
-            LOG(INFO) << elem.first << " " << elem.second << "\n";
+            std::cout << elem.first << " " << elem.second << "\n";
             csvFile << elem.first << "," << elem.second << "\n";
         }
 
@@ -305,11 +305,11 @@ protected:
 
         if (track.m_lastRegion.m_type == "People")
         {
-            cv::rectangle(frame, ResizeRect(track.GetLastRect()), cv::Scalar(198, 172, 75), 1, CV_AA);
+            cv::rectangle(frame, ResizeRect(track.GetLastRect()), cv::Scalar(198, 172, 75), 1, cv::LINE_AA);
         }
         else
         {
-            cv::rectangle(frame, ResizeRect(track.GetLastRect()), cv::Scalar(119, 102, 39), 1, CV_AA);
+            cv::rectangle(frame, ResizeRect(track.GetLastRect()), cv::Scalar(119, 102, 39), 1, cv::LINE_AA);
         }
 
         if (drawTrajectory)
@@ -323,11 +323,11 @@ protected:
 
                 if (track.m_lastRegion.m_type == "People")
                 {
-                    cv::line(frame, ResizePoint(pt1.m_prediction), ResizePoint(pt2.m_prediction), cv::Scalar(198, 172, 75), 1, CV_AA);
+                    cv::line(frame, ResizePoint(pt1.m_prediction), ResizePoint(pt2.m_prediction), cv::Scalar(198, 172, 75), 1, cv::LINE_AA);
                 }
                 else
                 {
-                    cv::line(frame, ResizePoint(pt1.m_prediction), ResizePoint(pt2.m_prediction), cv::Scalar(119, 102, 39), 1, CV_AA);
+                    cv::line(frame, ResizePoint(pt1.m_prediction), ResizePoint(pt2.m_prediction), cv::Scalar(119, 102, 39), 1, cv::LINE_AA);
                 }
                 //cv::line(frame, ResizePoint(pt1.m_prediction), ResizePoint(pt2.m_prediction), cl, 3, CV_AA);
                 if (!pt2.m_hasRaw)
@@ -372,11 +372,8 @@ private:
 class MODetAndTrack : public Pipeline {
 
 public:
-    explicit SSDEXample(const cv::CommandLineParser &parser) : Pipeline(parser)
+    explicit MODetAndTrack(const cv::CommandLineParser &parser) : Pipeline(parser)
     {
-        meanFile = FLAGS_mean_file;
-        meanValue = FLAGS_mean_value;
-
         line1_x1 = parser.get<int>("l1p1_x");
         line1_x2 = parser.get<int>("l1p2_x");
         line1_y1 = parser.get<int>("l1p1_y");
@@ -411,8 +408,6 @@ public:
 
 private:
     std::string modelFile;
-    std::string meanFile;
-    std::string meanValue;
 
     ObjectDetection* detector;
 
@@ -455,7 +450,7 @@ protected:
                 int baseLine = 0;
                 cv::Size labelSize = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
                 auto rect(track->GetLastRect());
-                cv::rectangle(frame, cv::Rect(cv::Point(rect.x, rect.y - labelSize.height), cv::Size(labelSize.width, labelSize.height + baseLine)), cv::Scalar(255, 255, 255), CV_FILLED);
+                cv::rectangle(frame, cv::Rect(cv::Point(rect.x, rect.y - labelSize.height), cv::Size(labelSize.width, labelSize.height + baseLine)), cv::Scalar(255, 255, 255), cv::FILLED);
                 cv::putText(frame, label, cv::Point(rect.x, rect.y), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0),1);
             }
         }
@@ -492,8 +487,8 @@ protected:
         float fontSize = 0.4;
         cv::Size labelSize_LR = cv::getTextSize(counterLabel_L, cv::FONT_HERSHEY_SIMPLEX, fontSize, 1, &baseLine);
         cv::Size labelSize_RL = cv::getTextSize(counterLabel_R, cv::FONT_HERSHEY_SIMPLEX, fontSize, 1, &baseLine);
-        cv::rectangle(frame, cv::Rect(cv::Point(0, 400 - 30 - labelSize_LR.height), cv::Size(labelSize_LR.width, labelSize_LR.height + baseLine)), cv::Scalar(255, 255, 255), CV_FILLED);
-        cv::rectangle(frame, cv::Rect(cv::Point(0, line2_y1 + 30 - labelSize_LR.height), cv::Size(labelSize_RL.width, labelSize_RL.height + baseLine)), cv::Scalar(255, 255, 255), CV_FILLED);
+        cv::rectangle(frame, cv::Rect(cv::Point(0, 400 - 30 - labelSize_LR.height), cv::Size(labelSize_LR.width, labelSize_LR.height + baseLine)), cv::Scalar(255, 255, 255), cv::FILLED);
+        cv::rectangle(frame, cv::Rect(cv::Point(0, line2_y1 + 30 - labelSize_LR.height), cv::Size(labelSize_RL.width, labelSize_RL.height + baseLine)), cv::Scalar(255, 255, 255), cv::FILLED);
         cv::putText(frame, counterLabel_L, cv::Point(0, 400 - 30), cv::FONT_HERSHEY_SIMPLEX, fontSize, cv::Scalar(0, 0, 0),1.5);
         cv::putText(frame, counterLabel_R, cv::Point(0, line2_y1 + 30), cv::FONT_HERSHEY_SIMPLEX, fontSize, cv::Scalar(0, 0, 0),1.5);
 //        cv::Size labelSize_LR = cv::getTextSize(counterLabel_L, cv::FONT_HERSHEY_SIMPLEX, fontSize, 1, &baseLine);
@@ -605,6 +600,6 @@ protected:
             }
         }
     }
-}
+};
 
 #endif // MO_TRACKER_PIPELINE_H

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(bbtracker)
 
-add_definitions(-std=c++11)
+set(CMAKE_CXX_STANDARD 14)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -14,6 +14,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 add_subdirectory(Detector)
 add_subdirectory(Tracker)
+
 
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
