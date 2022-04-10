@@ -136,7 +136,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../Detector/yolov5)
 add_library(mo-tracker SHARED
         defines.h
         nms.h
-        pipeline.h
         ${folder_source} 
         ${folder_headers} 
         ${graph_source} 

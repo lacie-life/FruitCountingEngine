@@ -60,9 +60,8 @@ target_link_libraries(detector_test ${OpenCV_LIBS}
 add_executable(mo_tracker_test Test/mo_tracker_test.cpp)
 
 target_link_libraries(mo_tracker_test ${OpenCV_LIBS} 
-                                      detector 
-                                      lk-tracker
-                                      mo-tracker 
+                                      detector  
+                                      mo-tracker
                                       ${CUDA_CUDA_LIBRARY} 
                                       ${ZED_LIBRARIES})
 

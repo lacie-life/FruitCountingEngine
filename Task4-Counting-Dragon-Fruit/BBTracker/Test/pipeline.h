@@ -19,8 +19,8 @@
 #include <opencv2/video.hpp>
 
 #include "yolov5_detection.h"
-#include "defines.h"
-#include "Ctracker.h"
+#include "MO-Tracker/defines.h"
+#include "MO-Tracker/Ctracker.h"
 
 using namespace std;
 

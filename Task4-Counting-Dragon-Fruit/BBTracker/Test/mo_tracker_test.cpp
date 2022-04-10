@@ -1,14 +1,17 @@
+#include <opencv2/highgui.hpp>
+#include <opencv2/video.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <chrono>
 #include <iostream>
-#include <opencv2/opencv.hpp>
-#include <opencv2/core/ocl.hpp>
 
-#include "MO-Tracker/pipeline.h"
+#include "yolov5_detection.h"
+#include "MO-Tracker/defines.h"
+#include "MO-Tracker/Ctracker.h"
 
 const char* keys =
         {
                 "{help h usage ?  |                    | Print usage| }"
-                "{ @input_video   |/home/jun/Downloads/videoplayback.mp4  | Input video file | }"
-                "{ e  example     |0                   | Number of example: 0 - SSD }"
+                "{ @input_video   |/home/jetjet/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BBTracker/MOT17-11.mp4  | Input video file | }"
                 "{ ocl opencl     |1                   | Flag to use opencl | }"
 
                 "{ sf start_frame |0                   | Frame modification parameter: Start a video from this position | }"
@@ -54,26 +57,30 @@ int main(int argc, char** argv)
         return 0;
     }
 
+    std::string inFile = parser.get<std::string>(0);
 
-    bool useOCL = parser.get<int>("opencl") != 0;
-    cv::ocl::setUseOpenCL(useOCL);
+    std::cout << inFile << std::endl;
 
-    auto exampleNum = parser.get<int>("example");
+    // Set up input
+    cv::VideoCapture cap("/home/jetjet/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BBTracker/MOT17-11.mp4");
 
-    switch (exampleNum)
-    {
-        case 0:
-        {
-            MODetAndTrack MOExample(parser);
-            MOExample.Process();
-            break;
-        }
-        default:
-            std::cerr << "Wrong example number!" << std::endl;
-            break;
+    cv::Mat frame;
+
+    if (!cap.isOpened()) {
+        std::cout << "Failed to open video: " << inFile << std::endl;
     }
 
+    while (true)
+    {
+        cap >> frame;
+
+        cv::imshow("Video", frame);
+    }
+
+    // MODetAndTrack MOExample(parser);
+    // MOExample.Process();
 
     cv::destroyAllWindows();
     return 0;
 }
+
