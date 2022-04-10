@@ -168,12 +168,12 @@ public:
                 const float score = d[0];
                 const float fLabel= d[1];
 
-                std::cout << ">>> score >>>" << d[0] << std::endl;
-                std::cout << ">>> label >>>" << d[1] << std::endl;
-                std::cout << ">>> xmin >>>" << d[2] << std::endl;
-                std::cout << ">>> ymin >>>" << d[3] << std::endl;
-                std::cout << ">>> xmax >>>" << d[4] << std::endl;
-                std::cout << ">>> ymax >>>" << d[5] << std::endl;
+                std::cout << ">>> score >>> " << d[0] << std::endl;
+                std::cout << ">>> label >>> " << d[1] << std::endl;
+                std::cout << ">>> xmin >>> " << d[2] << std::endl;
+                std::cout << ">>> ymin >>> " << d[3] << std::endl;
+                std::cout << ">>> xmax >>> " << d[4] << std::endl;
+                std::cout << ">>> ymax >>> " << d[5] << std::endl;
                 std::cout << "===============================" << std::endl;
 
                 if(desiredDetect)
@@ -183,21 +183,25 @@ public:
                         continue;
                     }
                 }
+
                 std::string label;
                 if (fLabel == 2.0){
                     label = "Bicycle";
                 }
-                else if (fLabel == 15.0){
+                else if (fLabel == 0.0){
                     label = "People";
                 }else{
                     label = std::to_string(static_cast<int>(fLabel));
                 }
+
                 if (score >= detectThreshold) {
 
                     // auto xLeftBottom = static_cast<int>(d[2] * frame.cols);
                     // auto yLeftBottom = static_cast<int>(d[3] * frame.rows);
                     // auto xRightTop = static_cast<int>(d[4] * frame.cols);
                     // auto yRightTop = static_cast<int>(d[5] * frame.rows);
+
+                    std::cout << label << std::endl;
 
                     cv::Rect object(d[2], d[3], d[4], d[5]);
                     tmpRegions.push_back(CRegion(object, label, score));
@@ -229,7 +233,7 @@ public:
                 DrawData(frame, frameCount, fontScale);
             }
 
-            if (writer.isOpened() and saveVideo)
+            if (writer.isOpened() && saveVideo)
             {
                 writer << frame;
             }
@@ -259,7 +263,7 @@ public:
 
         // Display and write output
         std::ofstream csvFile;
-        csvFile.open ("../data/D2.csv");
+        csvFile.open ("../D2.csv");
         csvFile << "Frame Modification time" << ",";
         csvFile << "Detection time" << ",";
         csvFile << "Tracking time" << ",";

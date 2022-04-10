@@ -4,9 +4,6 @@
 #include <chrono>
 #include <iostream>
 
-#include "yolov5_detection.h"
-#include "MO-Tracker/defines.h"
-#include "MO-Tracker/Ctracker.h"
 #include "pipeline.h"
 
 const char* keys =
@@ -27,18 +24,18 @@ const char* keys =
 
                 "{ th threshold   |0.5                 | Detection parameter: Confidence percentage of detected objects must exceed this value to be reported as a detected object. | }"
                 "{ dd desired_detect |1                | Detection Parameter: Flag to detect only desired objects | }"
-                "{ dd desired_objects |15,2,12   | Detection Parameter: list of desired objects to detect | }"
+                "{ dd desired_objects |0   | Detection Parameter: list of desired objects to detect | }"
 
                 "{ co count       |1                   | Counting parameter: Flag to use counting  | }"
                 "{ d direction    |2                   | Counting parameter: Variable to allow counting in a certain direction. 0 - left to right, 1 - right to left, 2 - both | }"
-                "{ l1p1_x         |290                   | Counting parameter: line 1 point 1 x coordinate  | }"
+                "{ l1p1_x         |450                   | Counting parameter: line 1 point 1 x coordinate  | }"
                 "{ l1p1_y         |0                  | Counting parameter: line 1 point 1 y coordinate  | }"
-                "{ l1p2_x         |290                   | Counting parameter: line 1 point 2 x coordinate  | }"
-                "{ l1p2_y         |600                   | Counting parameter: line 1 point 2 y coordinate  | }"
-                "{ l2p1_x         |310                  | Counting parameter: line 2 point 1 x coordinate  | }"
+                "{ l1p2_x         |450                   | Counting parameter: line 1 point 2 x coordinate  | }"
+                "{ l1p2_y         |590                   | Counting parameter: line 1 point 2 y coordinate  | }"
+                "{ l2p1_x         |460                  | Counting parameter: line 2 point 1 x coordinate  | }"
                 "{ l2p1_y         |0                  | Counting parameter: line 2 point 1 y coordinate  | }"
-                "{ l2p2_x         |310                   | Counting parameter: line 2 point 2 x coordinate  | }"
-                "{ l2p2_y         |600                   | Counting parameter: line 2 point 2 y coordinate  | }"
+                "{ l2p2_x         |460                   | Counting parameter: line 2 point 2 x coordinate  | }"
+                "{ l2p2_y         |590                   | Counting parameter: line 2 point 2 y coordinate  | }"
 
                 "{ dc draw_count  |1                   | Counting parameter: Flag to enable drawing info for count  | }"
                 "{ do draw_other  |1                   | Counting parameter: Flag to enable drawing info other component  | }"
@@ -57,31 +54,6 @@ int main(int argc, char** argv)
         parser.printMessage();
         return 0;
     }
-
-    // std::string inFile = parser.get<std::string>(0);
-
-    // std::cout << inFile << std::endl;
-
-    // // Set up input
-    // cv::VideoCapture cap("/home/jetjet/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BBTracker/MOT17-11.mp4");
-
-    // cv::Mat frame;
-
-    // if (!cap.isOpened()) {
-    //     std::cout << "Failed to open video: " << inFile << std::endl;
-    // }
-
-    // while (true)
-    // {
-    //     cap >> frame;
-
-    //     cv::imshow("Video", frame);
-
-    //     if(cv::waitKey(1) == 27)
-    //     {
-    //         break;
-    //     }
-    // }
 
     MODetAndTrack MOExample(parser);
     MOExample.Process();
