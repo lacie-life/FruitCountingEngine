@@ -7,6 +7,7 @@
 #include "yolov5_detection.h"
 #include "MO-Tracker/defines.h"
 #include "MO-Tracker/Ctracker.h"
+#include "pipeline.h"
 
 const char* keys =
         {
@@ -16,13 +17,13 @@ const char* keys =
 
                 "{ sf start_frame |0                   | Frame modification parameter: Start a video from this position | }"
                 "{ ef end_frame   |100000              | Frame modification parameter: Play a video to this position (if 0 then played to the end of file) | }"
-                "{ crop           |1                   | Frame modification parameter: Flag to use location of interest | }"
+                "{ crop           |0                   | Frame modification parameter: Flag to use location of interest | }"
                 "{ crop_x         |960                   | Frame modification parameter: x coordinate of location of interest | }"
                 "{ crop_y         |1100                   | Frame modification parameter: y coordinate of location of interest | }"
                 "{ crop_width     |600                 | Frame modification parameter: width of location of interest | }"
                 "{ crop_height    |400                 | Frame modification parameter: height of location of interest | }"
 
-                "{ m model        |/home/jun/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BBTracker/yolo.engine | Detection parameter: Model file | }"
+                "{ m model        |/home/jetjet/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BBTracker/yolo.engine | Detection parameter: Model file | }"
 
                 "{ th threshold   |0.5                 | Detection parameter: Confidence percentage of detected objects must exceed this value to be reported as a detected object. | }"
                 "{ dd desired_detect |1                | Detection Parameter: Flag to detect only desired objects | }"
@@ -57,30 +58,34 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    std::string inFile = parser.get<std::string>(0);
+    // std::string inFile = parser.get<std::string>(0);
 
-    std::cout << inFile << std::endl;
+    // std::cout << inFile << std::endl;
 
-    // Set up input
-    cv::VideoCapture cap("/home/jetjet/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BBTracker/MOT17-11.mp4");
+    // // Set up input
+    // cv::VideoCapture cap("/home/jetjet/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BBTracker/MOT17-11.mp4");
 
-    cv::Mat frame;
+    // cv::Mat frame;
 
-    if (!cap.isOpened()) {
-        std::cout << "Failed to open video: " << inFile << std::endl;
-    }
+    // if (!cap.isOpened()) {
+    //     std::cout << "Failed to open video: " << inFile << std::endl;
+    // }
 
-    while (true)
-    {
-        cap >> frame;
+    // while (true)
+    // {
+    //     cap >> frame;
 
-        cv::imshow("Video", frame);
-    }
+    //     cv::imshow("Video", frame);
 
-    // MODetAndTrack MOExample(parser);
-    // MOExample.Process();
+    //     if(cv::waitKey(1) == 27)
+    //     {
+    //         break;
+    //     }
+    // }
+
+    MODetAndTrack MOExample(parser);
+    MOExample.Process();
 
     cv::destroyAllWindows();
     return 0;
 }
-

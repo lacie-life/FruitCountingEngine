@@ -17,6 +17,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/video.hpp>
+#include <unistd.h>
 
 #include "yolov5_detection.h"
 #include "MO-Tracker/defines.h"
@@ -132,7 +133,10 @@ public:
                 std::cout << "Process: reached last " << endFrame << " frame" << std::endl;
                 break;
             }
-            if(!frame.empty())
+
+            // std::cout << frame.empty() << std::endl;
+
+            if(frame.empty())
             {
                 std::cout << "Error when read frame" << std::endl;
                 // break;
@@ -188,7 +192,7 @@ public:
                     cv::Rect object(xLeftBottom, yLeftBottom, xRightTop - xLeftBottom, yRightTop - yLeftBottom);
                     tmpRegions.push_back(CRegion(object, label, score));
                 }
-                // cv::imshow("Video", frame);
+                cv::imshow("Video", frame);
             }
             tDetection += cv::getTickCount() - tStartDetection;
 
@@ -217,6 +221,12 @@ public:
             }
 
             ++frameCount;
+            
+            if(cv::waitKey(1) == 27)
+            {
+                break;
+            }
+            
         }
         if (cap.isOpened()) {
             cap.release();
