@@ -40,8 +40,10 @@ Building a camera module mounted on a UAV that collects data on images of dragon
     - [ ] ZED 2 custom box tracker (pending)
     - [ ] SSD-Tracker (pending)
     - [x] LK Tracker (accuracy too low => check LK tracker) 
+    - [x] MO TRacker (testing) 
   - [ ] Counting Fruit (trying bounding box optical flow and SfM)
   - [ ] Improve Tracking and Counting Algorithm
+- [ ] Assign 3D position 
  
 ### Phase 2
 - [ ] Box for Mynt and Quad Camera
