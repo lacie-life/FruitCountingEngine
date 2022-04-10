@@ -17,3 +17,4 @@ https://github.com/dusty-nv/jetson-inference
 
 https://github.com/Smorodov/Multitarget-tracker
 
+https://github.com/stereolabs/zed-examples
