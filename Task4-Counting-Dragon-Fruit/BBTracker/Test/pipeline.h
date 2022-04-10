@@ -96,6 +96,8 @@ public:
         auto frame_width = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_WIDTH));
         auto frame_height = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_HEIGHT));
 
+        writer.open(outFile, cv::VideoWriter::fourcc('a', 'v', 'c', '1'), m_fps, cv::Size(frame_width, frame_height), true);
+
         std::cout << "Frame Infor: " << frame_width << " " << frame_height << std::endl;
 
         std::map <string,  int> countObjects_LefttoRight;
@@ -116,8 +118,6 @@ public:
 
             bool success = cap.read(frame);
 
-            cv::imshow("Video", frame);
-
             if (!success) {
                 std::cout << "Process " << frameCount << " frames from " << inFile << std::endl;
                 break;
@@ -133,8 +133,6 @@ public:
                 std::cout << "Process: reached last " << endFrame << " frame" << std::endl;
                 break;
             }
-
-            // std::cout << frame.empty() << std::endl;
 
             if(frame.empty())
             {
@@ -156,17 +154,28 @@ public:
             // Get all the detected objects.
             double tStartDetection = cv::getTickCount();
             regions_t tmpRegions;
-            std::vector<vector<float> > detections = detectframe(frame);
+            std::vector<vector<float>> detections = detectframev2(frame);
+
+            std::cout << "Number object in frame " << frameCount << "th: " << detections.size() << std::endl;
 
             // Filter out all the objects based
             // 1. Threshold
             // 2. Desired object classe
             for (auto const& detection : detections){
+
                 const vector<float> &d = detection;
-                // Detection format: [image_id, label, score, xmin, ymin, xmax, ymax].
-                // CHECK_EQ(d.size(), 7);
-                const float score = d[2];
+                // Detection format: [score, label, xmin, ymin, xmax, ymax].
+                const float score = d[0];
                 const float fLabel= d[1];
+
+                std::cout << ">>> score >>>" << d[0] << std::endl;
+                std::cout << ">>> label >>>" << d[1] << std::endl;
+                std::cout << ">>> xmin >>>" << d[2] << std::endl;
+                std::cout << ">>> ymin >>>" << d[3] << std::endl;
+                std::cout << ">>> xmax >>>" << d[4] << std::endl;
+                std::cout << ">>> ymax >>>" << d[5] << std::endl;
+                std::cout << "===============================" << std::endl;
+
                 if(desiredDetect)
                 {
                     if (!(std::find(desiredObjects.begin(), desiredObjects.end(), fLabel) != desiredObjects.end()))
@@ -185,14 +194,14 @@ public:
                 }
                 if (score >= detectThreshold) {
 
-                    auto xLeftBottom = static_cast<int>(d[3] * frame.cols);
-                    auto yLeftBottom = static_cast<int>(d[4] * frame.rows);
-                    auto xRightTop = static_cast<int>(d[5] * frame.cols);
-                    auto yRightTop = static_cast<int>(d[6] * frame.rows);
-                    cv::Rect object(xLeftBottom, yLeftBottom, xRightTop - xLeftBottom, yRightTop - yLeftBottom);
+                    // auto xLeftBottom = static_cast<int>(d[2] * frame.cols);
+                    // auto yLeftBottom = static_cast<int>(d[3] * frame.rows);
+                    // auto xRightTop = static_cast<int>(d[4] * frame.cols);
+                    // auto yRightTop = static_cast<int>(d[5] * frame.rows);
+
+                    cv::Rect object(d[2], d[3], d[4], d[5]);
                     tmpRegions.push_back(CRegion(object, label, score));
                 }
-                cv::imshow("Video", frame);
             }
             tDetection += cv::getTickCount() - tStartDetection;
 
@@ -220,7 +229,14 @@ public:
                 DrawData(frame, frameCount, fontScale);
             }
 
+            if (writer.isOpened() and saveVideo)
+            {
+                writer << frame;
+            }
+
             ++frameCount;
+
+            // cv::imshow("Result", frame);
             
             if(cv::waitKey(1) == 27)
             {
@@ -292,6 +308,7 @@ protected:
     int direction;
 
     virtual std::vector<vector<float> > detectframe(cv::Mat frame)= 0;
+    virtual std::vector<std::vector<float> > detectframev2(cv::Mat frame) = 0;
     virtual void DrawData(cv::Mat frame, int framesCounter, double fontScale) = 0;
     virtual void CounterUpdater(cv::Mat frame, std::map <string,  int> &countObjects_LefttoRight, std::map <string,  int> &countObjects_RighttoLeft) = 0;
     virtual void DrawCounter(cv::Mat frame, double fontScale, std::map <string,  int> &countObjects_LefttoRight, std::map <string,  int> &countObjects_RighttoLeft) = 0;
@@ -446,6 +463,12 @@ protected:
 
         return boxes_float;
     }
+
+    std::vector<std::vector<float> > detectframev2(cv::Mat frame){
+
+        return detector->detectObjectv2(frame);
+    }
+
     void DrawData(cv::Mat frame, int framesCounter, double fontScale){
         for (const auto& track : m_tracker->tracks)
         {

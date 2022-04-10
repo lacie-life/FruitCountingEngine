@@ -43,7 +43,7 @@ const char* keys =
                 "{ dc draw_count  |1                   | Counting parameter: Flag to enable drawing info for count  | }"
                 "{ do draw_other  |1                   | Counting parameter: Flag to enable drawing info other component  | }"
 
-                "{ o output       |../data/D2.avi      | Writing parameter: Name of output video file | }"
+                "{ o output       |../D2.avi      | Writing parameter: Name of output video file | }"
                 "{ save_video     |1                   | Writing parameter: Flag to enable writing to file | }"
 };
 

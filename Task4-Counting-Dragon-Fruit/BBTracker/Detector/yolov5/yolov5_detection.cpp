@@ -99,6 +99,7 @@ std::vector<cv::Rect> ObjectDetection::detectObject(const cv::Mat& _frame)
         Object object;
         object.rec = get_rect(left_cv_rgb, it.bbox);
         object.prob = it.conf;
+        
         object.label = it.class_id;
 
         objects.push_back(object);
@@ -108,7 +109,68 @@ std::vector<cv::Rect> ObjectDetection::detectObject(const cv::Mat& _frame)
         {
             boxes.push_back(object.rec);
         }
+
+        std::cout << "Label: " << object.label << std::endl;
+        std::cout << "Conf: " << object.prob << std::endl;
+
+        std::cout << "-------------------------------" << std::endl;
     }
 
     return boxes;
+}
+
+std::vector<std::vector<float>> ObjectDetection::detectObjectv2(const cv::Mat& _frame)
+{
+    // _frame is input from ZED camera => RGBA format
+    cv::cvtColor(_frame, left_cv_rgb, cv::COLOR_BGRA2BGR);
+
+    cv::Mat pr_img = preprocess_img(left_cv_rgb, INPUT_W, INPUT_H); 
+
+    int i = 0;
+    int batch = 0;
+    for (int row = 0; row < INPUT_H; ++row) {
+        uchar* uc_pixel = pr_img.data + row * pr_img.step;
+        for (int col = 0; col < INPUT_W; ++col) {
+            data[batch * 3 * INPUT_H * INPUT_W + i] = (float) uc_pixel[2] / 255.0;
+            data[batch * 3 * INPUT_H * INPUT_W + i + INPUT_H * INPUT_W] = (float) uc_pixel[1] / 255.0;
+            data[batch * 3 * INPUT_H * INPUT_W + i + 2 * INPUT_H * INPUT_W] = (float) uc_pixel[0] / 255.0;
+            uc_pixel += 3;
+            ++i;
+        }
+    }
+
+    // Running inference
+    doInference(*context, stream, buffers, data, prob, BATCH_SIZE);
+    std::vector<std::vector < Yolo::Detection >> batch_res(BATCH_SIZE);
+    auto& res = batch_res[batch];
+    nms(res, &prob[batch * OUTPUT_SIZE], CONF_THRESH, NMS_THRESH);
+
+    std::vector<std::vector<float>> objects;
+
+    for (auto &it : res)
+    {
+        // A object detected
+        std::vector<float> object;
+
+        float conf = it.conf;
+
+        std::cout << "Score: " << conf << std::endl;
+
+        object.push_back(static_cast<float>(conf));
+
+        object.push_back(static_cast<float>(it.class_id));
+
+        cv::Rect rec = get_rect(left_cv_rgb, it.bbox);
+
+        // Convert cv::Rect to float vector
+        object.push_back((float)rec.tl().x);
+        object.push_back((float)rec.tl().y);
+        object.push_back((float)rec.br().x);
+        object.push_back((float)rec.br().y);
+
+        // add to objects vector
+        objects.push_back(object);
+    }
+
+    return objects;
 }
