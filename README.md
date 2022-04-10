@@ -36,12 +36,13 @@ Building a camera module mounted on a UAV that collects data on images of dragon
   - [x] Run TenserRT Engine in ZED 2 Video stream 
     - [x] Build and Run
     - [x] Fixing crash (fixed bug => ZED SDK 3.6.5) 
-  - [ ] Bounding Box Tracker
+  - [x] Bounding Box Tracker
     - [ ] ZED 2 custom box tracker (pending)
     - [ ] SSD-Tracker (pending)
     - [x] LK Tracker (accuracy too low => check LK tracker) 
     - [x] MO TRacker (testing) 
   - [ ] Counting Fruit (trying bounding box optical flow and SfM)
+    - [ ] Improve MO and LK Tracker => counting 
   - [ ] Improve Tracking and Counting Algorithm
 - [ ] Assign 3D position 
  
