@@ -17,13 +17,17 @@ int main( int argc, char** argv )
         cap >> frame;
         std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
         auto recs = det.detectObjectv2(frame);
+
+        // auto recs = det.detectObject(frame);
+
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
         std::chrono::duration<double> time_used = std::chrono::duration_cast<std::chrono::duration<double>>(t2-t1);
         std::cout<<"Optical flow time: " << time_used.count() << "seconds" << std::endl;
 
         for(auto rec:recs)
         {
-            cv::rectangle(frame, cv::Rect(rec[2], rec[3], rec[4], rec[5]), cv::Scalar(0, 255, 0), 2, 1);
+            cv::rectangle(frame, rec.rec, cv::Scalar(0, 255, 0), 2, 1);
+            // cv::rectangle(frame, rec, cv::Scalar(0, 255, 0), 2, 1);
         }
 
         cv::imshow("detection", frame);

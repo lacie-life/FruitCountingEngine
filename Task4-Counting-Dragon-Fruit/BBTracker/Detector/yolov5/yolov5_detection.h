@@ -59,7 +59,7 @@ class ObjectDetection
     public:
         ObjectDetection(const std::string _model_path);
         std::vector<cv::Rect> detectObject(const cv::Mat& _frame);
-        std::vector<std::vector<float>> detectObjectv2(const cv::Mat& _frame);
+        std::vector<Object> detectObjectv2(const cv::Mat& _frame);
         
     private:
         std::vector<sl::uint2> cvt(const cv::Rect &bbox_in);

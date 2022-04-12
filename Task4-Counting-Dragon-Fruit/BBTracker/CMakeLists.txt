@@ -66,11 +66,11 @@ target_link_libraries(mo_tracker_test ${OpenCV_LIBS}
                                       ${CUDA_CUDA_LIBRARY} 
                                       ${ZED_LIBRARIES})
 
-add_executable(zed2_test Test/zed2_test.cpp Test/zed2_pipeline.h)
+# add_executable(zed2_test Test/zed2_test.cpp Test/zed2_pipeline.h)
 
-target_link_libraries(zed2_test ${OpenCV_LIBS} 
-                                detector 
-                                lk-tracker
-                                mo-tracker 
-                                ${CUDA_CUDA_LIBRARY} 
-                                ${ZED_LIBRARIES})
+# target_link_libraries(zed2_test ${OpenCV_LIBS} 
+#                                 detector 
+#                                 lk-tracker
+#                                 mo-tracker 
+#                                 ${CUDA_CUDA_LIBRARY} 
+#                                 ${ZED_LIBRARIES})

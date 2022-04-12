@@ -154,7 +154,7 @@ public:
             // Get all the detected objects.
             double tStartDetection = cv::getTickCount();
             regions_t tmpRegions;
-            std::vector<vector<float>> detections = detectframev2(frame);
+            std::vector<Object> detections = detectframev2(frame);
 
             std::cout << "Number object in frame " << frameCount << "th: " << detections.size() << std::endl;
 
@@ -163,18 +163,18 @@ public:
             // 2. Desired object classe
             for (auto const& detection : detections){
 
-                const vector<float> &d = detection;
+                const Object &d = detection;
                 // Detection format: [score, label, xmin, ymin, xmax, ymax].
-                const float score = d[0];
-                const float fLabel= d[1];
+                const float score = d.prob;
+                const float fLabel= d.label;
 
-                std::cout << ">>> score >>> " << d[0] << std::endl;
-                std::cout << ">>> label >>> " << d[1] << std::endl;
-                std::cout << ">>> xmin >>> " << d[2] << std::endl;
-                std::cout << ">>> ymin >>> " << d[3] << std::endl;
-                std::cout << ">>> xmax >>> " << d[4] << std::endl;
-                std::cout << ">>> ymax >>> " << d[5] << std::endl;
-                std::cout << "===============================" << std::endl;
+                // std::cout << ">>> score >>> " << d[0] << std::endl;
+                // std::cout << ">>> label >>> " << d[1] << std::endl;
+                // std::cout << ">>> xmin >>> " << d[2] << std::endl;
+                // std::cout << ">>> ymin >>> " << d[3] << std::endl;
+                // std::cout << ">>> xmax >>> " << d[4] << std::endl;
+                // std::cout << ">>> ymax >>> " << d[5] << std::endl;
+                // std::cout << "===============================" << std::endl;
 
                 if(desiredDetect)
                 {
@@ -203,7 +203,7 @@ public:
 
                     std::cout << label << std::endl;
 
-                    cv::Rect object(d[2], d[3], d[4], d[5]);
+                    cv::Rect object(d.rec);
                     tmpRegions.push_back(CRegion(object, label, score));
                 }
             }
@@ -312,7 +312,7 @@ protected:
     int direction;
 
     virtual std::vector<vector<float> > detectframe(cv::Mat frame)= 0;
-    virtual std::vector<std::vector<float> > detectframev2(cv::Mat frame) = 0;
+    virtual std::vector<Object> detectframev2(cv::Mat frame) = 0;
     virtual void DrawData(cv::Mat frame, int framesCounter, double fontScale) = 0;
     virtual void CounterUpdater(cv::Mat frame, std::map <string,  int> &countObjects_LefttoRight, std::map <string,  int> &countObjects_RighttoLeft) = 0;
     virtual void DrawCounter(cv::Mat frame, double fontScale, std::map <string,  int> &countObjects_LefttoRight, std::map <string,  int> &countObjects_RighttoLeft) = 0;
@@ -468,7 +468,7 @@ protected:
         return boxes_float;
     }
 
-    std::vector<std::vector<float> > detectframev2(cv::Mat frame){
+    std::vector<Object> detectframev2(cv::Mat frame){
 
         return detector->detectObjectv2(frame);
     }

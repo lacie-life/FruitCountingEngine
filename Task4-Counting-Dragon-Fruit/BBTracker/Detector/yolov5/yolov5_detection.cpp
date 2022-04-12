@@ -96,7 +96,7 @@ std::vector<cv::Rect> ObjectDetection::detectObject(const cv::Mat& _frame)
     for (auto &it : res)
     {
         Object object;
-        object.rec = get_rect(left_cv_rgb, it.bbox);
+        object.rec = get_rect(img, it.bbox);
         object.prob = it.conf;
         
         object.label = it.class_id;
@@ -118,12 +118,12 @@ std::vector<cv::Rect> ObjectDetection::detectObject(const cv::Mat& _frame)
     return boxes;
 }
 
-std::vector<std::vector<float>> ObjectDetection::detectObjectv2(const cv::Mat& _frame)
+std::vector<Object> ObjectDetection::detectObjectv2(const cv::Mat& _frame)
 {
-    // _frame is input from ZED camera => RGBA format
-    cv::cvtColor(_frame, left_cv_rgb, cv::COLOR_BGRA2BGR);
 
-    cv::Mat pr_img = preprocess_img(left_cv_rgb, INPUT_W, INPUT_H); 
+    cv::Mat img = _frame.clone();
+
+    cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H); 
 
     int i = 0;
     int batch = 0;
@@ -144,31 +144,24 @@ std::vector<std::vector<float>> ObjectDetection::detectObjectv2(const cv::Mat& _
     auto& res = batch_res[batch];
     nms(res, &prob[batch * OUTPUT_SIZE], CONF_THRESH, NMS_THRESH);
 
-    std::vector<std::vector<float>> objects;
+    std::vector<Object> objects;
 
     for (auto &it : res)
     {
         // A object detected
-        std::vector<float> object;
+        Object object;
 
-        float conf = it.conf;
+        object.rec = get_rect(img, it.bbox);
+        object.prob = it.conf;
+        
+        object.label = it.class_id;
 
-        std::cout << "Score: " << conf << std::endl;
+        // Threshold
+        if(object.prob > 0.2)
+        {
+            objects.push_back(object);
+        }
 
-        object.push_back(static_cast<float>(conf));
-
-        object.push_back(static_cast<float>(it.class_id));
-
-        cv::Rect rec = get_rect(left_cv_rgb, it.bbox);
-
-        // Convert cv::Rect to float vector
-        object.push_back((float)rec.tl().x);
-        object.push_back((float)rec.tl().y);
-        object.push_back((float)rec.br().x);
-        object.push_back((float)rec.br().y);
-
-        // add to objects vector
-        objects.push_back(object);
     }
 
     return objects;
