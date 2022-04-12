@@ -1,6 +1,5 @@
 Frame Modification time,Detection time,Tracking time,Counting time,FDTC time,Total time,FDTC frame rate,Total frame rate
-3.43841,28.9787,1.16483,0.580365,34.1623,40.5564,26.3448,22.1913
+4.86746,32.5067,2.68094,0.189955,40.245,47.0014,44.6763,38.2542
 Object label,count Left to Right
-People,2
 Object label,count Right to Left
-People,16
+People,28

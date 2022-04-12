@@ -7,23 +7,23 @@
 
 int main( int argc, char** argv )
 {
-    cv::VideoCapture cap("/home/jetjet/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BBTracker/MOT17-11.mp4");
+    cv::VideoCapture cap("/home/jun/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BBTracker/MOT17-11.mp4");
     cv::Mat frame;
 
-    ObjectDetection det("/home/jetjet/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BBTracker/yolo.engine");
+    ObjectDetection det("/home/jun/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BBTracker/yolo.engine");
 
     while(true)
     {
         cap >> frame;
         std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-        auto recs = det.detectObject(frame);
+        auto recs = det.detectObjectv2(frame);
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
         std::chrono::duration<double> time_used = std::chrono::duration_cast<std::chrono::duration<double>>(t2-t1);
         std::cout<<"Optical flow time: " << time_used.count() << "seconds" << std::endl;
 
         for(auto rec:recs)
         {
-            cv::rectangle(frame, rec, cv::Scalar(0, 255, 0), 2, 1);
+            cv::rectangle(frame, cv::Rect(rec[2], rec[3], rec[4], rec[5]), cv::Scalar(0, 255, 0), 2, 1);
         }
 
         cv::imshow("detection", frame);

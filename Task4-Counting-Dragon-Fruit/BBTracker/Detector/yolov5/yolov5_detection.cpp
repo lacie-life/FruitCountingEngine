@@ -69,10 +69,9 @@ std::vector<cv::Rect> ObjectDetection::detectObject(const cv::Mat& _frame)
 {
     std::vector<cv::Rect> boxes;
 
-    // _frame is input from ZED camera => RGBA format
-    cv::cvtColor(_frame, left_cv_rgb, cv::COLOR_BGRA2BGR);
+    cv::Mat img = _frame.clone();
 
-    cv::Mat pr_img = preprocess_img(left_cv_rgb, INPUT_W, INPUT_H); 
+    cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H); 
 
     int i = 0;
     int batch = 0;
