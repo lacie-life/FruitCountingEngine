@@ -42,7 +42,9 @@ Building a camera module mounted on a UAV that collects data on images of dragon
     - [x] LK Tracker (accuracy too low => check LK tracker) 
     - [x] MO TRacker (testing) 
   - [ ] Counting Fruit (trying bounding box optical flow and SfM)
-    - [ ] Improve MO and LK Tracker => counting 
+    - [x] MO Tracker counting 
+    - [ ] LK Tracker counting
+    - [ ] Improve counting algorithm
   - [ ] Improve Tracking and Counting Algorithm
 - [ ] Assign 3D position 
  
