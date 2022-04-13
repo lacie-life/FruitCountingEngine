@@ -42,7 +42,7 @@ Building a camera module mounted on a UAV that collects data on images of dragon
     - [ ] VPI BBTracker (Testing)
     - [x] LK Tracker (accuracy too low => check LK tracker) 
     - [x] MO TRacker (testing) 
-  - [x] Counting Fruit 
+  - [x] Counting Object 
     - [x] MO Tracker counting 
     - [ ] LK Tracker counting
     - [ ] Improve counting algorithm (trying bounding box optical flow and SfM)
