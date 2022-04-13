@@ -1,5 +1,5 @@
-#ifndef OBJECT_DETECTION_H
-#define OBJECT_DETECTION_H
+#ifndef YOLOV5_DETECTION_H
+#define YOLOV5_DETECTION_H
 
 #include <opencv2/core/utility.hpp>
 #include <vector>

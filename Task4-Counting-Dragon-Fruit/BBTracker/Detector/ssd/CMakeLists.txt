@@ -1,46 +1,33 @@
-cmake_minimum_required(VERSION 2.8)
-
-set(CMAKE_BUILD_TYPE Release)
-
-find_package( OpenCV REQUIRED )
-
-if (NOT OpenCV_FOUND)
-    message(FATAL_ERROR "opencv Not Found!")
-else()
-    message(STATUS "OpenCV_LIBS: ${OpenCV_LIBS}")
-    message(STATUS "OpenCV_INCLUDE_DIRS: ${OpenCV_INCLUDE_DIRS}")
-endif (NOT OpenCV_FOUND)
-
-find_package(OpenMP)
-if(OpenMP_CXX_FOUND OR OPENMP_FOUND)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
+cmake_minimum_required(VERSION 2.6)
 
 add_definitions(-std=c++11)
 
-message(STATUS "CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
-message(STATUS "CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
-include_directories(${OpenCV_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/ncnn/src)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/ncnn/build/src)
-link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/ncnn/build/src)
+option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_BUILD_TYPE Debug)
 
-SET(NCNNLIB -Wl,--whole-archive ncnn -Wl,--no-whole-archive)
+find_package(CUDA REQUIRED)
+set(CUDA_NVCC_PLAGS ${CUDA_NVCC_PLAGS};-std=c++11;-g;-G;-gencode;arch=compute_30;code=sm_30)
 
-link_directories(
-  ${OpenCV_Install}/lib
-)
+include_directories(${PROJECT_SOURCE_DIR}/include)
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+    message("embed_platform on")
+    include_directories(/usr/local/cuda/targets/aarch64-linux/include)
+    link_directories(/usr/local/cuda/targets/aarch64-linux/lib)
+else()
+    message("embed_platform off")
+    include_directories(/usr/local/cuda/include)
+    link_directories(/usr/local/cuda/lib64)
+endif()
 
-add_library(pedestrian_detection STATIC object_detection.cpp)
-target_link_libraries(pedestrian_detection ${NCNNLIB} ${OpenCV_LIBS})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Ofast -Wfatal-errors -D_MWAITXINTRIN_H_INCLUDED")
 
-add_executable(detection_test test.cpp)
-link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../build/pedestrian_detection)
-#link_directories(${CMAKE_CURRENT_SOURCE_DIR}/build)
-target_link_libraries(detection_test pedestrian_detection ${OpenCV_LIBS})
+find_package(OpenCV)
+include_directories(OpenCV_INCLUDE_DIRS)
 
-set_property(TARGET pedestrian_detection PROPERTY POSITION_INDEPENDENT_CODE ON)
+add_executable(ssd_detector ${PROJECT_SOURCE_DIR}/ssd_detection.cpp ${PROJECT_SOURCE_DIR}/ssd_detection.cpp)
+target_link_libraries(ssd_detector nvinfer)
+target_link_libraries(ssd_detector cudart)
+target_link_libraries(ssd_detector ${OpenCV_LIBS})
 
-
+add_definitions(-O2 -pthread)
