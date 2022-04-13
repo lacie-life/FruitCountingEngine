@@ -26,7 +26,7 @@ class DetAndTrack
     cv::Mat current_frame_;
     //cv::Mat last_frame_;
 
-    ObjectDetection* object_detection_ptr_;
+    YoLoObjectDetection* object_detection_ptr_;
 
     TrackerManager* track_manager_ptr_; 
 

@@ -13,6 +13,12 @@ float clamp(float x)
   return std::max(std::min(x, 1.f), 0.f);
 }
 
+
+bool cmp(const SSDObject &a, const SSDObject &b)
+{
+  return a.conf > b.conf;
+}
+
 std::vector<std::vector<float>> generate_ssd_priors()
 {
   // SSD specifications as feature map size, shrinkage, box min, box max
@@ -179,7 +185,7 @@ void SSDObjectDetection::doInference(IExecutionContext &context, float *input, f
     const int outputIndexBx = engine.getBindingIndex(OUTPUT_BLOB_NAME_BX);
 
     // Create GPU buffers on device
-    CHECK(cudaMalloc(&buffers[inputIndex], batchSize * ssd::INPUT_C * ssd::INPUT_H * ssd::INPUT_W * sizeof(float)));
+    CHECK(cudaMalloc(&buffers[inputIndex], batchSize * SSD::INPUT_C * SSD::INPUT_H * SSD::INPUT_W * sizeof(float)));
     CHECK(cudaMalloc(&buffers[outputIndexCnf], batchSize * OUTPUT_SIZE_CNF * sizeof(float)));
     CHECK(cudaMalloc(&buffers[outputIndexBx], batchSize * OUTPUT_SIZE_BX * sizeof(float)));
 
@@ -188,7 +194,7 @@ void SSDObjectDetection::doInference(IExecutionContext &context, float *input, f
     CHECK(cudaStreamCreate(&stream));
 
     // DMA input batch data to device, infer on the batch asynchronously, and DMA output back to host
-    CHECK(cudaMemcpyAsync(buffers[inputIndex], input, batchSize * ssd::INPUT_C * ssd::INPUT_H * ssd::INPUT_W * sizeof(float), cudaMemcpyHostToDevice, stream));
+    CHECK(cudaMemcpyAsync(buffers[inputIndex], input, batchSize * SSD::INPUT_C * SSD::INPUT_H * SSD::INPUT_W * sizeof(float), cudaMemcpyHostToDevice, stream));
     context.enqueue(batchSize, buffers, stream, nullptr);
     CHECK(cudaMemcpyAsync(output_cnf, buffers[outputIndexCnf], batchSize * OUTPUT_SIZE_CNF * sizeof(float), cudaMemcpyDeviceToHost, stream));
     CHECK(cudaMemcpyAsync(output_bx, buffers[outputIndexBx], batchSize * OUTPUT_SIZE_BX * sizeof(float), cudaMemcpyDeviceToHost, stream));

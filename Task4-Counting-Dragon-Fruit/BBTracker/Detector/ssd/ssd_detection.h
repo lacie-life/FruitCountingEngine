@@ -70,12 +70,12 @@ class SSDObjectDetection
 {
     public:
         SSDObjectDetection(const std::string _model_path);
-        std::vector<cv::Rect> detectObject(const cv::Mat& _frame);
+        std::vector<SSDObject> detectObject(const cv::Mat& _frame);
 
     private:
         void doInference(IExecutionContext &context, float *input, float *output_cnf, float *output_bx, int batchSize);
         std::vector<SSDObject> post_process_output(float *prob, float *locations, float conf_thresh, float nms_thresh);
-        
+
     private:
         IRuntime* runtime;
         ICudaEngine* engine;

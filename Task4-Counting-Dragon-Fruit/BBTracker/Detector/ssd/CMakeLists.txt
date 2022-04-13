@@ -25,9 +25,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Ofast -Wfatal-errors -
 find_package(OpenCV)
 include_directories(OpenCV_INCLUDE_DIRS)
 
-add_executable(ssd_detector ${PROJECT_SOURCE_DIR}/ssd_detection.cpp ${PROJECT_SOURCE_DIR}/ssd_detection.cpp)
-target_link_libraries(ssd_detector nvinfer)
-target_link_libraries(ssd_detector cudart)
-target_link_libraries(ssd_detector ${OpenCV_LIBS})
+add_library(ssd-detector SHARED 
+                            ssd_detection.cpp 
+                            ssd_detection.h
+                            logging.h)
+                            
+target_link_libraries(ssd-detector nvinfer)
+target_link_libraries(ssd-detector cudart)
+target_link_libraries(ssd-detector ${OpenCV_LIBS})
 
 add_definitions(-O2 -pthread)

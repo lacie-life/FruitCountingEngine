@@ -54,10 +54,10 @@ struct Object{
     int label;
 };
 
-class ObjectDetection
+class YoLoObjectDetection
 {
     public:
-        ObjectDetection(const std::string _model_path);
+        YoLoObjectDetection(const std::string _model_path);
         std::vector<cv::Rect> detectObject(const cv::Mat& _frame);
         std::vector<Object> detectObjectv2(const cv::Mat& _frame);
         

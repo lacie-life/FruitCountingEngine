@@ -416,7 +416,7 @@ public:
 
         modelFile = parser.get<std::string>("model");
 
-        detector = new ObjectDetection(modelFile);
+        detector = new YoLoObjectDetection(modelFile);
 
         // Initialize the tracker
         config_t config;
@@ -440,7 +440,7 @@ public:
 private:
     std::string modelFile;
 
-    ObjectDetection* detector;
+    YoLoObjectDetection* detector;
 
     int line1_x1;
     int line1_x2;

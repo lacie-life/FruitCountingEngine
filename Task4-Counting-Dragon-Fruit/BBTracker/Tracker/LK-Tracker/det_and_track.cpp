@@ -10,7 +10,7 @@ DetAndTrack::DetAndTrack(const std::string _model_path):
     //face_cascade_.load("../haarcascade_frontalface_alt.xml");
     detection_sleep_time_ = 100;
     track_sleep_time_ = 2;
-    object_detection_ptr_ = new ObjectDetection(_model_path);
+    object_detection_ptr_ = new YoLoObjectDetection(_model_path);
 }
 
 DetAndTrack::DetAndTrack(const std::string _model_path, int _detection_sleep_time, int _track_sleep_time):
@@ -20,7 +20,7 @@ DetAndTrack::DetAndTrack(const std::string _model_path, int _detection_sleep_tim
     track_sleep_time_(_track_sleep_time)
 {
     //face_cascade_.load("../haarcascade_frontalface_alt.xml");
-    object_detection_ptr_ = new ObjectDetection(_model_path);
+    object_detection_ptr_ = new YoLoObjectDetection(_model_path);
 }
 
 void DetAndTrack::detectionTask()

@@ -1,6 +1,6 @@
 #include "yolov5_detection.h"
 
-ObjectDetection::ObjectDetection(const std::string _model_path)
+YoLoObjectDetection::YoLoObjectDetection(const std::string _model_path)
 {   
     // deserialize the .engine and run inference
     std::ifstream file(_model_path, std::ios::binary);
@@ -47,7 +47,7 @@ ObjectDetection::ObjectDetection(const std::string _model_path)
     assert(BATCH_SIZE == 1); // This sample only support batch 1 for now
 }
 
-std::vector<sl::uint2> ObjectDetection::cvt(const cv::Rect &bbox_in)
+std::vector<sl::uint2> YoLoObjectDetection::cvt(const cv::Rect &bbox_in)
 {
     std::vector<sl::uint2> bbox_out(4);
     bbox_out[0] = sl::uint2(bbox_in.x, bbox_in.y);
@@ -57,7 +57,7 @@ std::vector<sl::uint2> ObjectDetection::cvt(const cv::Rect &bbox_in)
     return bbox_out;
 }
 
-void ObjectDetection::doInference(IExecutionContext& context, cudaStream_t& stream, void **buffers, float* input, float* output, int batchSize) {
+void YoLoObjectDetection::doInference(IExecutionContext& context, cudaStream_t& stream, void **buffers, float* input, float* output, int batchSize) {
     // DMA input batch data to device, infer on the batch asynchronously, and DMA output back to host
     CUDA_CHECK(cudaMemcpyAsync(buffers[0], input, batchSize * 3 * INPUT_H * INPUT_W * sizeof (float), cudaMemcpyHostToDevice, stream));
     context.enqueue(batchSize, buffers, stream, nullptr);
@@ -65,7 +65,7 @@ void ObjectDetection::doInference(IExecutionContext& context, cudaStream_t& stre
     cudaStreamSynchronize(stream);
 }
 
-std::vector<cv::Rect> ObjectDetection::detectObject(const cv::Mat& _frame)
+std::vector<cv::Rect> YoLoObjectDetection::detectObject(const cv::Mat& _frame)
 {
     std::vector<cv::Rect> boxes;
 
@@ -118,7 +118,7 @@ std::vector<cv::Rect> ObjectDetection::detectObject(const cv::Mat& _frame)
     return boxes;
 }
 
-std::vector<Object> ObjectDetection::detectObjectv2(const cv::Mat& _frame)
+std::vector<Object> YoLoObjectDetection::detectObjectv2(const cv::Mat& _frame)
 {
 
     cv::Mat img = _frame.clone();

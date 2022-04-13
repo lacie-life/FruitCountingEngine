@@ -28,6 +28,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../Detector/yolov5)
 
 add_library(lk-tracker SHARED lk_tracker.cpp munkres.cpp det_and_track.cpp)
 target_link_libraries(lk-tracker ${OpenCV_LIBS} 
-                                 detector 
+                                 yolov5-detector 
                                  ${CUDA_CUDA_LIBRARY}
                                  ${ZED_LIBRARIES})

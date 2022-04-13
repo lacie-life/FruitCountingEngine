@@ -42,7 +42,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Tracker)
 add_executable(bbtracker main.cpp)
 
 target_link_libraries(bbtracker ${OpenCV_LIBS} 
-                                detector 
+                                yolov5-detector 
                                 lk-tracker
                                 mo-tracker 
                                 ${CUDA_CUDA_LIBRARY} 
@@ -51,7 +51,7 @@ target_link_libraries(bbtracker ${OpenCV_LIBS}
 add_executable(detector_test Test/detector_test.cpp)
 
 target_link_libraries(detector_test ${OpenCV_LIBS} 
-                                    detector 
+                                    yolov5-detector  
                                     lk-tracker
                                     mo-tracker 
                                     ${CUDA_CUDA_LIBRARY} 
@@ -60,7 +60,7 @@ target_link_libraries(detector_test ${OpenCV_LIBS}
 add_executable(mo_tracker_test Test/mo_tracker_test.cpp)
 
 target_link_libraries(mo_tracker_test ${OpenCV_LIBS} 
-                                      detector 
+                                      yolov5-detector  
                                       lk-tracker
                                       mo-tracker
                                       ${CUDA_CUDA_LIBRARY} 
