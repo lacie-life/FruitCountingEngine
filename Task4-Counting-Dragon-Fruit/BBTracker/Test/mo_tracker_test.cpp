@@ -4,7 +4,8 @@
 #include <chrono>
 #include <iostream>
 
-#include "MO-Tracker/pipeline.h"
+// #include "MO-Tracker/pipeline.h"
+#include "zed2_pipeline.h"
 
 const char* keys =
         {
@@ -28,14 +29,14 @@ const char* keys =
 
                 "{ co count       |1                   | Counting parameter: Flag to use counting  | }"
                 "{ d direction    |2                   | Counting parameter: Variable to allow counting in a certain direction. 0 - left to right, 1 - right to left, 2 - both | }"
-                "{ l1p1_x         |640                   | Counting parameter: line 1 point 1 x coordinate  | }"
+                "{ l1p1_x         |950                   | Counting parameter: line 1 point 1 x coordinate  | }"
                 "{ l1p1_y         |0                  | Counting parameter: line 1 point 1 y coordinate  | }"
-                "{ l1p2_x         |640                   | Counting parameter: line 1 point 2 x coordinate  | }"
-                "{ l1p2_y         |720                   | Counting parameter: line 1 point 2 y coordinate  | }"
-                "{ l2p1_x         |650                  | Counting parameter: line 2 point 1 x coordinate  | }"
+                "{ l1p2_x         |950                   | Counting parameter: line 1 point 2 x coordinate  | }"
+                "{ l1p2_y         |1080                   | Counting parameter: line 1 point 2 y coordinate  | }"
+                "{ l2p1_x         |970                  | Counting parameter: line 2 point 1 x coordinate  | }"
                 "{ l2p1_y         |0                  | Counting parameter: line 2 point 1 y coordinate  | }"
-                "{ l2p2_x         |650                   | Counting parameter: line 2 point 2 x coordinate  | }"
-                "{ l2p2_y         |720                   | Counting parameter: line 2 point 2 y coordinate  | }"
+                "{ l2p2_x         |970                   | Counting parameter: line 2 point 2 x coordinate  | }"
+                "{ l2p2_y         |1080                   | Counting parameter: line 2 point 2 y coordinate  | }"
 
                 "{ dc draw_count  |1                   | Counting parameter: Flag to enable drawing info for count  | }"
                 "{ do draw_other  |1                   | Counting parameter: Flag to enable drawing info other component  | }"

@@ -50,6 +50,8 @@ public:
         desiredDetect = parser.get<bool>("desired_detect");
         desiredObjectsString = parser.get<std::string>("desired_objects");
 
+        modelFile = parser.get<std::string>("model");
+
         if (!parser.check())
         {
             parser.printErrors();
@@ -97,7 +99,7 @@ public:
         }
 
         auto camera_config = zed.getCameraInformation().camera_configuration;
-        sl::Resolution pc_resolution(std::min((int) camera_config.resolution.width, 720), std::min((int) camera_config.resolution.height, 404));
+        sl::Resolution pc_resolution(std::min((int) camera_config.resolution.width, 1280), std::min((int) camera_config.resolution.height, 720));
         auto camera_info = zed.getCameraInformation(pc_resolution).camera_configuration;
         
         sl::Mat left_sl;
@@ -106,8 +108,8 @@ public:
 
         // video output
         cv::VideoWriter writer;
-        auto frame_width = static_cast<int>(std::min((int) camera_config.resolution.width, 720));
-        auto frame_height = static_cast<int>(std::min((int) camera_config.resolution.height, 404));
+        auto frame_width = static_cast<int>(std::min((int) camera_config.resolution.width, 1280));
+        auto frame_height = static_cast<int>(std::min((int) camera_config.resolution.height, 720));
 
         writer.open(outFile, cv::VideoWriter::fourcc('a', 'v', 'c', '1'), m_fps, cv::Size(frame_width, frame_height), true);
 
@@ -123,6 +125,8 @@ public:
         double tCounting = 0;
         double tDTC = 0;
         double tStart  = cv::getTickCount();
+
+        detector = new YoLoObjectDetection(modelFile);
 
         // Process one frame at a time
         while (true) {
@@ -153,7 +157,7 @@ public:
                     left_cv_rgb = copyFrame;
                 }
                 tFrameModification += cv::getTickCount() - tStartFrameModification;
-
+                
                 // Get all the detected objects.
                 double tStartDetection = cv::getTickCount();
                 regions_t tmpRegions;
@@ -238,7 +242,7 @@ public:
 
                 ++frameCount;
 
-                // cv::imshow("Result", frame);
+                cv::imshow("Result", left_cv_rgb);
             
                 if(cv::waitKey(1) == 27)
                 {
@@ -302,6 +306,7 @@ public:
         csvFile.close();
     }
 protected:
+    YoLoObjectDetection* detector;
     std::unique_ptr<CTracker> m_tracker;
     float m_fps;
     bool enableCount;
@@ -394,6 +399,7 @@ private:
     float detectThreshold;
     std::vector<cv::Scalar> m_colors;
     std::string desiredObjectsString;
+    std::string modelFile;
 
 };
 
@@ -410,10 +416,6 @@ public:
         line2_x2 = parser.get<int>("l2p2_x");
         line2_y1 = parser.get<int>("l2p1_y");
         line2_y2 = parser.get<int>("l2p2_y");
-
-        modelFile = parser.get<std::string>("model");
-
-        detector = new ObjectDetection(modelFile);
 
         // Initialize the tracker
         config_t config;
@@ -436,8 +438,6 @@ public:
 
 private:
     std::string modelFile;
-
-    ObjectDetection* detector;
 
     int line1_x1;
     int line1_x2;
