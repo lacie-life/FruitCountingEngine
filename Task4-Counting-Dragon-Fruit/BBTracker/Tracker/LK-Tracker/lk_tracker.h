@@ -21,7 +21,6 @@
 #include <opencv2/tracking.hpp>
 
 #include "munkres.h"
-//#include "det_and_track.h"
 
 class LkTracker{
     public:
