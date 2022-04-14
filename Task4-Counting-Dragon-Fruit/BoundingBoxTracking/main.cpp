@@ -6,10 +6,10 @@
 
 #include <vpi/Image.h>
 #include <vpi/Stream.h>
-#include <vpi/algo/HarrisKeypointDetector.h>
-#include <vpi/algo/KLTBoundingBoxTracker.h>
-#include <vpi/algo/ImageFormatConverter.h>
-#include <vpi/algo/PerspectiveImageWarp.h>
+#include <vpi/algo/HarrisCorners.h>
+#include <vpi/algo/KLTFeatureTracker.h>
+#include <vpi/algo/ConvertImageFormat.h>
+#include <vpi/algo/PerspectiveWarp.h>
 
 #include "cuda_utils.cuh"
 
@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     const char* gst = "filesrc location=/opt/nvidia/vpi/samples/assets/dashcam.mp4 ! qtdemux ! queue ! h264parse ! omxh264dec ! video/x-raw "
                       "! videoconvert ! video/x-raw, format=BGR ! appsink";
 
-    cv::VideoCapture video(gst, cv::CAP_GSTREAMER);
+    cv::VideoCapture video("/home/jun/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BoundingBoxTracking/dashcam.mp4");
     if( !video.isOpened() )
     {
         std::cerr << "[ERROR] Can't open input video" << std::endl;
@@ -61,9 +61,9 @@ int main(int argc, char *argv[])
     CHECK_STATUS(vpiStreamWrapCuda(cuda_stream, &stream));
     CHECK_STATUS(vpiStreamCreate(VPI_DEVICE_TYPE_PVA, &pva));
 
-    CHECK_STATUS(vpiCreateHarrisKeypointDetector(stream, img_w, img_h, &harris));
-    CHECK_STATUS(vpiCreateKLTBoundingBoxTracker (stream, img_w, img_h, VPI_IMAGE_TYPE_S16, &klt));
-    CHECK_STATUS(vpiCreatePerspectiveImageWarp  (pva, &warp));
+    CHECK_STATUS(vpiCreateHarrisCornerDetector(stream, img_w, img_h, &harris));
+    CHECK_STATUS(vpiCreateKLTFeatureTracker (stream, img_w, img_h, VPI_IMAGE_TYPE_S16, &klt));
+    CHECK_STATUS(vpiCreatePerspectiveWarp  (pva, &warp));
 
     CHECK_STATUS(vpiImageCreate(img_w, img_h, VPI_IMAGE_TYPE_NV12, 0, &warpNV12));
     CHECK_STATUS(vpiImageCreate(img_w, img_h, VPI_IMAGE_TYPE_NV12, 0, &warpOut));
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
         clock.total_tic();
         clock.tic();
         {
-            VPIHarrisKeypointDetectorParams params;
+            VPIHarriCornerDetectorParams params;
             params.gradientSize   = 5;
             params.blockSize      = 5;
             params.strengthThresh = 40;
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
             params.minNMSDistance = 64; // must be 8 for PVA backend
 
 
-           CHECK_STATUS(vpiSubmitHarrisKeypointDetector(harris, imagePre, keypoints, scores, &params));
+           CHECK_STATUS(vpiSubmitHarrisCornerDetector(harris, imagePre, keypoints, scores, &params));
            CHECK_STATUS(vpiStreamSync(stream));
         }
         clock.toc(">> Harris time: ");
@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
             params.maxScaleChange                 = 5.0f;
             params.maxTranslationChange           = 100.0f;
             params.trackingType                   = VPI_KLT_INVERSE_COMPOSITIONAL;
-            CHECK_STATUS(vpiSubmitKLTBoundingBoxTracker(klt, imagePre, inputBoxList, inputPredList,
+            CHECK_STATUS(vpiSubmitKLTFeatureTracker(klt, imagePre, inputBoxList, inputPredList,
                                                         image, outputBoxList, outputEstimList, &params));
             CHECK_STATUS(vpiStreamSync(stream));
         }
@@ -274,14 +274,14 @@ int main(int argc, char *argv[])
         // warp
         clock.tic();
         {
-            CHECK_STATUS(vpiSubmitImageFormatConverter(stream, warpBGR, warpNV12, VPI_CONVERSION_CAST, 1, 0));
+            CHECK_STATUS(vpiSubmitConvertImageFormat(stream, warpBGR, warpNV12, VPI_CONVERSION_CAST, 1, 0));
             CHECK_STATUS(vpiStreamSync(stream));
 
-            CHECK_STATUS(vpiSubmitPerspectiveImageWarp(warp, warpNV12, transform, warpOut, VPI_INTERP_LINEAR,
+            CHECK_STATUS(vpiSubmitPerspectiveWarp(warp, warpNV12, transform, warpOut, VPI_INTERP_LINEAR,
                                                        VPI_BOUNDARY_COND_ZERO, 0));
             CHECK_STATUS(vpiStreamSync(pva));
 
-            CHECK_STATUS(vpiSubmitImageFormatConverter(stream, warpOut, warpBGR, VPI_CONVERSION_CAST, 1, 0));
+            CHECK_STATUS(vpiSubmitConvertImageFormat(stream, warpOut, warpBGR, VPI_CONVERSION_CAST, 1, 0));
             CHECK_STATUS(vpiStreamSync(stream));
         }
         clock.toc(", warping time: ");
