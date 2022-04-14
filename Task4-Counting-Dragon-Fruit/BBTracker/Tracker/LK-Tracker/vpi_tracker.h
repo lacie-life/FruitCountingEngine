@@ -128,7 +128,7 @@ static cv::Mat WriteKLTBoxes(VPIImage img, VPIArray boxes, VPIArray preds)
     return out;
 }
 
-class VPITracker {
+class VPITrackerManager {
 public:
     VPITracker(cv::Mat _frame, std::vector<cv::Rect> _rois);
     void updateTrackersWithNewFrame(const cv::Mat& _frame);
