@@ -129,13 +129,16 @@ static cv::Mat WriteKLTBoxes(VPIImage img, VPIArray boxes, VPIArray preds)
 }
 
 class VPITrackerManager {
+
 public:
     VPITracker(cv::Mat _frame, std::vector<cv::Rect> _rois);
+    ~VPITracker();
     void updateTrackersWithNewFrame(const cv::Mat& _frame);
     bool updateTrackersWithNewDetectionResults(const std::vector<cv::Rect>& _dets);
     std::vector<cv::Rect> getAllBox();
     std::vector<cv::Scalar> getAllColor();
     std::vector<cv::Point2f> getAllPoints();
+    cv::Mat preprocessImage(cv::Mat& _frame);
 
 private:
     // OpenCV image that will be wrapped by a VPIImage.
@@ -164,6 +167,10 @@ private:
     int32_t predsSize = 0;
 
     std::map<int, size_t> bboxes_size_at_frame; // frame -> bbox count
+
+    cv::Mat last_frame_;
+    std::vector<cv::Point2f> all_new_points_;
+    int ids_;
 };
 
 #endif
