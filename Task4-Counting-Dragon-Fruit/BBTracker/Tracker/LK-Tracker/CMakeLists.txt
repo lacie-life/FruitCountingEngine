@@ -8,6 +8,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -pthread")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
+find_package(vpi REQUIRED)
 find_package(OpenCV 4 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 find_package(Threads REQUIRED)
@@ -26,8 +27,13 @@ link_directories(${ZED_LIBRARY_DIR})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../Detector/yolov5)
 
-add_library(lk-tracker SHARED lk_tracker.cpp munkres.cpp det_and_track.cpp)
+add_library(lk-tracker SHARED lk_tracker.cpp 
+                                 munkres.cpp 
+                                 det_and_track.cpp 
+                                 vpi_tracker.h 
+                                 vpi_tracker.cpp)
 target_link_libraries(lk-tracker ${OpenCV_LIBS} 
-                                 yolov5-detector 
+                                 yolov5-detector
+                                 vpi 
                                  ${CUDA_CUDA_LIBRARY}
                                  ${ZED_LIBRARIES})

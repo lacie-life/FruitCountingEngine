@@ -4,6 +4,7 @@ project(vpi-bbtracker)
 
 find_package(vpi REQUIRED)
 find_package(OpenCV 4 REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 set(
 	CUDA_NVCC_FLAGS
@@ -15,5 +16,5 @@ cuda_add_library(cuda-utils SHARED cuda_utils.cu cuda_utils.cuh)
 
 cuda_add_executable(vpi-bbtracker main.cpp)
 
-target_link_libraries(vpi-bbtracker vpi opencv_core opencv_imgproc opencv_imgcodecs cuda-utils)
+target_link_libraries(vpi-bbtracker vpi ${OpenCV_LIBS} cuda-utils)
 
