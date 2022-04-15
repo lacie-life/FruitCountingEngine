@@ -81,7 +81,7 @@ class VPITracker{
         bool first_time_;
         double ticks_;
 
-        friend class TrackerManager;
+        friend class VPITrackerManager;
 };
 
 class VPITrackerManager{

@@ -439,7 +439,7 @@ VPITrackerManager::VPITrackerManager(cv::Mat _frame, std::vector<cv::Rect> _rois
 {
     for(auto roi:_rois)
     {
-        auto tracker_ptr = new LkTracker(_frame, roi, ids_, USE_KF_);
+        auto tracker_ptr = new VPITracker(_frame, roi, ids_, USE_KF_);
         tracker_ptrs_.push_back(tracker_ptr);
         ids_ = (ids_+1)%100000;
     }
@@ -531,7 +531,7 @@ void VPITrackerManager::updateTrackersWithNewFrame(const cv::Mat& _frame)
         {
             try
             {
-                tracker_ptr->updateLkTracker(_frame);
+                tracker_ptr->updateVPITracker(_frame);
             }
             catch(std::invalid_argument& e)
             {
@@ -700,7 +700,7 @@ bool VPITrackerManager::updateTrackersWithNewDetectionResults(const std::vector<
     {
         if(!matched_dets[det_ind])
         {
-            std::cout << "new LkTracker in" << last_frame_.cols << " " << last_frame_.rows;
+            std::cout << "new VPITracker in" << last_frame_.cols << " " << last_frame_.rows;
             std::cout << det <<std::endl; 
             
             bool duplicated = false;
@@ -724,8 +724,8 @@ bool VPITrackerManager::updateTrackersWithNewDetectionResults(const std::vector<
             
             if(!duplicated)
             {
-                auto tracker_ptr = new LkTracker(last_frame_, det, ids_, USE_KF_);
-                std::cout << "new LkTracker get" << std::endl;
+                auto tracker_ptr = new VPITracker(last_frame_, det, ids_, USE_KF_);
+                std::cout << "new VPITracker get" << std::endl;
                 tracker_ptrs_.push_back(tracker_ptr);
                 ids_ = (ids_+1)%100000;
             }
