@@ -161,6 +161,7 @@ void VPITracker::updateTrackersWithNewFrame(const cv::Mat &_frame)
     auto *updated_bbox = reinterpret_cast<VPIKLTTrackedBoundingBox *>(updatedBBoxData.buffer.aos.data);
     auto *estim = reinterpret_cast<VPIHomographyTransform2D *>(estimData.buffer.aos.data);
 
+    // TODO: Need remove bad track
     for (size_t b = 0; b < bboxes.size(); b++)
     {
         // Did tracking failed?
@@ -226,4 +227,61 @@ void VPITracker::updateTrackersWithNewFrame(const cv::Mat &_frame)
 bool VPITracker::updateTrackersWithNewDetectionResults(const std::vector<cv::Rect>& _dets)
 {
     // What is here ????????????
+    // matching tracker with detection results
+    int box_num = bboxes.size();
+    int dets_num = _dets.size();
+
+    
 }
+
+float VPITracker::getIOU(const cv::Rect _rec1, const cv::Rect _rec2)
+{
+    auto max = [](int a, int b){return a>b?a:b;};
+    auto min = [](int a, int b){return a<b?a:b;};
+
+    int xA = max(_rec1.x, _rec2.x);
+    int yA = max(_rec1.y, _rec2.y);
+    int xB = min(_rec1.x+_rec1.width, _rec2.x+_rec2.width);
+    int yB = max(_rec1.y+_rec1.height, _rec2.y+_rec2.height);
+    int interArea = 0;
+    if(xB <= xA || yB <= yA)
+    {
+        interArea = 0;
+    }
+    else
+    {
+        interArea = (xB - xA +1)*(yB - yA +1);
+    }
+    int boxAArea = (_rec1.width+1)*(_rec1.height+1);
+    int boxBArea = (_rec2.width+1)*(_rec2.height+1);
+    float iou = float(interArea) / float(boxAArea + boxBArea - interArea);
+
+    return iou;
+}
+
+int VPITracker::getMatchingScore(const cv::Rect _rec1, const cv::Rect _rec2)
+{
+    // score = (1 - iou) * dx/width * dy/height * 100
+    float iou = getIOU(_rec1, _rec2);
+
+    int x1 = _rec1.x + _rec1.width/2;
+    int x2 = _rec2.x + _rec2.width/2;
+    int y1 = _rec1.y + _rec1.height/2;
+    int y2 = _rec2.y + _rec2.height/2;
+    auto abs = [](float x){return x>0?x:-x;};
+    float dx = abs(static_cast<float>(x2-x1));
+    float dy = abs(static_cast<float>(y2-y1));
+
+    int score = static_cast<int>((1.0-iou) * dx * dy * 100.0 / (_rec1.width * _rec1.height));
+
+    //std::cout << "rec1" << std::endl << _rec1 << std::endl;
+    //std::cout << "rec2" << std::endl << _rec2 << std::endl;
+    //std::cout << "score:" << score << std::endl;
+    
+    if(score == 0)
+    {
+        score = 1;
+    }
+    return score;
+}
+

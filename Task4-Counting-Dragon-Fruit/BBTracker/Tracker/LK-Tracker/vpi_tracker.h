@@ -20,6 +20,8 @@
 #include <sstream>
 #include <vector>
 
+#include "munkres.h"
+
 #define CHECK_STATUS(STMT)                                    \
     do                                                        \
     {                                                         \
@@ -145,6 +147,9 @@ private:
     // Define it here so that it's destroyed *after* wrapper is destroyed
     cv::Mat cvTemplate;
     cv::Mat cvReference;
+
+    float getIOU(const cv::Rect _rec1, const cv::Rect _rec2);
+    int getMatchingScore(const cv::Rect _rec1, const cv::Rect _rec2);
 
     VPIBackend backend;
 
