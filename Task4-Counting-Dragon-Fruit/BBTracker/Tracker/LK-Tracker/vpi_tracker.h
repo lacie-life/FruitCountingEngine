@@ -173,6 +173,7 @@ private:
 
     std::map<int, size_t> bboxes_size_at_frame; // frame -> bbox count
 
+    const int COST_THRESHOLD_;
     cv::Mat last_frame_;
     std::vector<cv::Point2f> all_new_points_;
     int ids_;

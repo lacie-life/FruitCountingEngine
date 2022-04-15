@@ -2,6 +2,7 @@
 
 VPITracker::VPITracker(cv::Mat _frame, std::vector<cv::Rect> _rois)
     : ids_(0),
+    COST_THRESHOLD_(100)
 {
     // Convert cv::Rect vector to VPIBoundingBox vector
     int i = 0;
@@ -33,8 +34,6 @@ VPITracker::VPITracker(cv::Mat _frame, std::vector<cv::Rect> _rois)
         xform.mat3[1][1] = 1;
         xform.mat3[2][2] = 1;
         preds.push_back(xform);
-
-        bboxes_size_at_frame[frame] = bboxes.size();
     }
 
     _frame.copyTo(last_frame_);
@@ -231,7 +230,70 @@ bool VPITracker::updateTrackersWithNewDetectionResults(const std::vector<cv::Rec
     int box_num = bboxes.size();
     int dets_num = _dets.size();
 
-    
+    std::cout << "trackers: " << trackers_num << " dets: " << dets_num << std::endl;
+
+    cv::Mat_<int> old_matrix;
+    cv::Mat_<int> new_matrix;
+
+    // Convert vpi box to cv::rect
+    std::vector<cv::Rect> cvBoxes;
+
+    for(auto box : bboxes)
+    {
+        cv::Rect rec;
+        rec.x = box.bbox.xform.mat3[0][2];
+        rec.y = box.bbox.xform.mat3[1][2];
+        rec.width = box.bbox.width;
+        rec.height = box.bbox.height;
+
+        cvBoxes.push_back(rec);
+    }
+
+    if(box_num && dets_num)
+    {
+        std::cout << "initialize cost_matrix" << std::endl;
+        cv::Mat_<int> cost_matrix(box_num, dets_num);
+        int i = 0;
+
+        for(auto rec : cvBoxes)
+        {
+            int j = 0;
+            for(auto det:_dets)
+            {
+                std::cout <<"get matching score (" << i <<","<<j <<")=" ;
+                cost_matrix(i, j) = getMatchingScore(rec, det);
+                std::cout << (int)cost_matrix(i, j) << std::endl;
+                j ++;
+            }
+            i ++;
+        }
+
+        old_matrix = cost_matrix.clone();
+        Munkres m;
+        std::cout << "start hungarian " << box_num << " x " << dets_num << std::endl;
+        std::cout << cost_matrix << std::endl;
+        m.solve(cost_matrix);
+        std::cout << "hungarian end" << std::endl;
+        new_matrix = cost_matrix.clone();
+    }
+
+    std::vector<int> matched_dets(dets_num, 0);
+
+    for(int i = 0; i < box_num; i++)
+    {
+        bool matched = false;
+
+        for(int j = 0; j < dets_num; j++)
+        {
+            if(new_matrix(i, j) == 0)
+            {
+                if(old_matrix(i, j) < COST_THRESDHOLD_)
+                {
+
+                }
+            }
+        }
+    }
 }
 
 float VPITracker::getIOU(const cv::Rect _rec1, const cv::Rect _rec2)
