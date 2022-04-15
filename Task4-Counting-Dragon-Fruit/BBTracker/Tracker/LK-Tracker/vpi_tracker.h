@@ -1,182 +1,109 @@
-#ifndef VPI_TRACKER_H
-#define VPI_TRACKER_H
+#ifndef LK_TRACKER_H
+#define LK_TRACKER_H
 
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/videoio.hpp>
-
-#include <opencv2/imgproc/imgproc.hpp>
-#include <vpi/OpenCVInterop.hpp>
-
-#include <vpi/Array.h>
-#include <vpi/Image.h>
-#include <vpi/Status.h>
-#include <vpi/Stream.h>
-#include <vpi/algo/KLTFeatureTracker.h>
-
-#include <cstring> // for memset
-#include <fstream>
 #include <iostream>
-#include <map>
-#include <sstream>
+#include <list>
 #include <vector>
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <string>
+#include <stdexcept>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
+#include <ctime>
+
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/features2d/features2d.hpp>
+#include <opencv2/video/tracking.hpp>
+#include <opencv2/tracking.hpp>
 
 #include "munkres.h"
 
-#define CHECK_STATUS(STMT)                                    \
-    do                                                        \
-    {                                                         \
-        VPIStatus status = (STMT);                            \
-        if (status != VPI_SUCCESS)                            \
-        {                                                     \
-            char buffer[VPI_MAX_STATUS_MESSAGE_LENGTH];       \
-            vpiGetLastStatusMessage(buffer, sizeof(buffer));  \
-            std::ostringstream ss;                            \
-            ss << vpiStatusGetName(status) << ": " << buffer; \
-            throw std::runtime_error(ss.str());               \
-        }                                                     \
-    } while (0);
-
-// Utility to draw the bounding boxes into an image and save it to disk.
-static cv::Mat WriteKLTBoxes(VPIImage img, VPIArray boxes, VPIArray preds)
-{
-    // Convert img into a cv::Mat
-    cv::Mat out;
-    {
-        VPIImageData imgdata;
-        CHECK_STATUS(vpiImageLock(img, VPI_LOCK_READ, &imgdata));
-
-        int cvtype;
-        switch (imgdata.format)
+class VPITracker{
+    public:
+        VPITracker(const cv::Mat& _frame, const cv::Rect& _bbox, const int _tracker_id, const bool _use_kf);
+        void updateVPITracker(const cv::Mat& _frame);
+        cv::Rect getBbox()
         {
-        case VPI_IMAGE_FORMAT_U8:
-            cvtype = CV_8U;
-            break;
-
-        case VPI_IMAGE_FORMAT_S8:
-            cvtype = CV_8S;
-            break;
-
-        case VPI_IMAGE_FORMAT_U16:
-            cvtype = CV_16UC1;
-            break;
-
-        case VPI_IMAGE_FORMAT_S16:
-            cvtype = CV_16SC1;
-            break;
-
-        default:
-            throw std::runtime_error("Image type not supported");
+            return bbox_;
         }
-
-        cv::Mat cvimg(imgdata.planes[0].height, imgdata.planes[0].width, cvtype, imgdata.planes[0].data,
-                      imgdata.planes[0].pitchBytes);
-
-        if (cvimg.type() == CV_16U)
+        cv::Scalar getColor()
         {
-            cvimg.convertTo(out, CV_8U);
-            cvimg = out;
-            out   = cv::Mat();
+            return color_;   
         }
-
-        cvtColor(cvimg, out, cv::COLOR_GRAY2BGR);
-
-        CHECK_STATUS(vpiImageUnlock(img));
-    }
-
-    // Now draw the bounding boxes.
-    VPIArrayData boxdata;
-    CHECK_STATUS(vpiArrayLock(boxes, VPI_LOCK_READ, &boxdata));
-
-    VPIArrayData preddata;
-    CHECK_STATUS(vpiArrayLock(preds, VPI_LOCK_READ, &preddata));
-
-    auto *pboxes = reinterpret_cast<VPIKLTTrackedBoundingBox *>(boxdata.data);
-    auto *ppreds = reinterpret_cast<VPIHomographyTransform2D *>(preddata.data);
-
-    // Use random high-saturated colors
-    static std::vector<cv::Vec3b> colors;
-    if ((int)colors.size() != *boxdata.sizePointer)
-    {
-        colors.resize(*boxdata.sizePointer);
-
-        cv::RNG rand(1);
-        for (size_t i = 0; i < colors.size(); ++i)
+        std::list<cv::Point2f> getTrackPoints()
         {
-            colors[i] = cv::Vec3b(rand.uniform(0, 180), 255, 255);
+            return track_points_;
         }
-        cvtColor(colors, colors, cv::COLOR_HSV2BGR);
-    }
-
-    // For each tracked bounding box...
-    for (int i = 0; i < *boxdata.sizePointer; ++i)
-    {
-        if (pboxes[i].trackingStatus == 1)
+        bool getStatus()
         {
-            continue;
+            return status_;
         }
+        
+        // kalman filter stuff
+        void KalmanUpdate(const cv::Rect _new_box);
+        void KalmanPredict();
 
-        float x, y, w, h;
-        x = pboxes[i].bbox.xform.mat3[0][2] + ppreds[i].mat3[0][2];
-        y = pboxes[i].bbox.xform.mat3[1][2] + ppreds[i].mat3[1][2];
-        w = pboxes[i].bbox.width * pboxes[i].bbox.xform.mat3[0][0] * ppreds[i].mat3[0][0];
-        h = pboxes[i].bbox.height * pboxes[i].bbox.xform.mat3[1][1] * ppreds[i].mat3[1][1];
+    private:
+        static cv::Ptr<cv::FastFeatureDetector> detector_;  
+        int tracker_id_;
+        cv::Rect bbox_;
+        bool status_; 
+        int MIN_TRACK_POINTS_NUM_ = 10;
+        int MAX_TRACK_POINTS_NUM_ = 60;
+        std::list<cv::Point2f> track_points_;
+        std::vector<cv::Point2f> old_track_points_;
+        const float SCALE_THRESHOLD = 1.01;
+        template <class T>
+        T findMedian(std::vector<T> vec);
+        int frame_width_;
+        int frame_height_;
 
-        rectangle(out, cv::Rect(x, y, w, h), cv::Scalar(colors[i][0], colors[i][1], colors[i][2]), 2);
-    }
+        int32_t MIN_ACCEPT_FRAMES_;
+        int32_t MIN_REJECT_FRAMES_;
+        bool accepted_;
+        bool rejected_;
+        int32_t getting_frames_;
+        int32_t missing_frames_;
+        
+        cv::Scalar color_;
 
-    CHECK_STATUS(vpiArrayUnlock(preds));
-    CHECK_STATUS(vpiArrayUnlock(boxes));
+        // kalman filter stuff
+        const bool USE_KF_; // if do Kalman filter or not
+        cv::KalmanFilter kf_;
+        cv::Mat kf_state_; // x, y, xdot, ydot, w, h
+        cv::Mat kf_measure_;
+        float p_cov_scalar_;
+        float m_cov_scalar_;
+        bool first_time_;
+        double ticks_;
 
-    return out;
-}
+        friend class TrackerManager;
+};
 
-class VPITrackerManager {
+class VPITrackerManager{
+    public:
+        VPITrackerManager(cv::Mat _frame, std::vector<cv::Rect> _rois);
+        void updateTrackersWithNewFrame(const cv::Mat& _frame);
+        bool updateTrackersWithNewDetectionResults(const std::vector<cv::Rect>& _dets);
+        std::vector<cv::Rect> getAllBox();
+        std::vector<cv::Scalar> getAllColor();
+        std::vector<cv::Point2f> getAllPoints();
+    private:
+        std::vector<VPITracker*> tracker_ptrs_;
+        //cv::Mat current_frame_;
+        cv::Mat last_frame_;
+        std::vector<cv::Point2f> all_new_points_;
+        int ids_;
+        float getIOU(const cv::Rect _rec1, const cv::Rect _rec2);
+        int getMatchingScore(const cv::Rect _rec1, const cv::Rect _rec2);
+        const int COST_THRESHOLD_;
+        const bool USE_KF_; // use kalman filter
 
-public:
-    VPITracker(cv::Mat _frame, std::vector<cv::Rect> _rois);
-    ~VPITracker();
-    void updateTrackersWithNewFrame(const cv::Mat& _frame);
-    bool updateTrackersWithNewDetectionResults(const std::vector<cv::Rect>& _dets);
-    std::vector<cv::Rect> getAllBox();
-    std::vector<cv::Scalar> getAllColor();
-    std::vector<cv::Point2f> getAllPoints();
-    cv::Mat preprocessImage(cv::Mat& _frame);
-
-private:
-    // OpenCV image that will be wrapped by a VPIImage.
-    // Define it here so that it's destroyed *after* wrapper is destroyed
-    cv::Mat cvTemplate;
-    cv::Mat cvReference;
-
-    float getIOU(const cv::Rect _rec1, const cv::Rect _rec2);
-    int getMatchingScore(const cv::Rect _rec1, const cv::Rect _rec2);
-
-    VPIBackend backend;
-
-    // Arrays that will store our input bboxes and predicted transform.
-    VPIArray inputBoxList = NULL; 
-    VPIArray inputPredList = NULL;
-
-    // Other VPI objects that will be used
-    VPIStream stream         = NULL;
-    VPIArray outputBoxList   = NULL;
-    VPIArray outputEstimList = NULL;
-    VPIPayload klt           = NULL;
-    VPIImage imgReference    = NULL;
-    VPIImage imgTemplate     = NULL;
-
-    // These arrays will actually wrap these vectors.
-    std::vector<VPIKLTTrackedBoundingBox> bboxes;
-    int32_t bboxesSize = 0;
-    std::vector<VPIHomographyTransform2D> preds;
-    int32_t predsSize = 0;
-
-    std::map<int, size_t> bboxes_size_at_frame; // frame -> bbox count
-
-    const int COST_THRESHOLD_;
-    cv::Mat last_frame_;
-    std::vector<cv::Point2f> all_new_points_;
-    int ids_;
+        friend class DetAndTrack;
 };
 
 #endif

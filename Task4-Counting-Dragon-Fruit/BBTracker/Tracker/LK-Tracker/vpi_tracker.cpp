@@ -1,302 +1,567 @@
 #include "vpi_tracker.h"
 
-VPITracker::VPITracker(cv::Mat _frame, std::vector<cv::Rect> _rois)
-    : ids_(0),
-    COST_THRESHOLD_(100)
-{
-    // Convert cv::Rect vector to VPIBoundingBox vector
-    int i = 0;
-    for (i = 0; i < _rois.size(); i++)
+VPITracker::VPITracker(const cv::Mat& _frame, const cv::Rect& _bbox, const int _tracker_id, const bool _use_kf):
+    USE_KF_(_use_kf),
+    tracker_id_(_tracker_id),
+    bbox_(_bbox),
+    status_(true),
+    MIN_ACCEPT_FRAMES_(2),
+    MIN_REJECT_FRAMES_(2),
+    accepted_(false),
+    rejected_(false),
+    getting_frames_(0),
+    missing_frames_(0),
+    kf_(6, 4, 0),
+    kf_state_(6, 1, CV_32F),
+    kf_measure_(4, 1, CV_32F),
+    first_time_(true)
+{   
+    frame_width_ = _frame.cols;
+    frame_height_ = _frame.rows;
+   
+    if(bbox_.x < 0)
     {
-        // Convert the axis-aligned bounding box into our tracking
-        // structure.
-
-        VPIKLTTrackedBoundingBox track = {};
-        // scale
-        track.bbox.xform.mat3[0][0] = 1;
-        track.bbox.xform.mat3[1][1] = 1;
-        // position
-        track.bbox.xform.mat3[0][2] = _rois[i].x;
-        track.bbox.xform.mat3[1][2] = _rois[i].y;
-        // must be 1
-        track.bbox.xform.mat3[2][2] = 1;
-
-        track.bbox.width = _rois[i].width;
-        track.bbox.height = _rois[i].height;
-        track.trackingStatus = 0; // valid tracking
-        track.templateStatus = 1; // must update
-
-        bboxes.push_back(track);
-
-        // Identity predicted transform.
-        VPIHomographyTransform2D xform = {};
-        xform.mat3[0][0] = 1;
-        xform.mat3[1][1] = 1;
-        xform.mat3[2][2] = 1;
-        preds.push_back(xform);
+        bbox_.x = 0;
+    }
+    if(bbox_.y < 0)
+    {
+        bbox_.y = 0;
+    }
+    if(bbox_.width < 0)
+    {
+        bbox_.width = 1;
+    }
+    if(bbox_.height < 0)
+    {
+        bbox_.height = 1;
+    }
+    if((bbox_.y + bbox_.height >= frame_height_) || bbox_.y >= frame_height_)
+    {
+        if(bbox_.y >= frame_height_)
+        {
+            bbox_.y = frame_height_ - 2;
+            bbox_.height = 1;
+        }
+        bbox_.height = frame_height_ - bbox_.y - 1;
+    }
+    if((bbox_.x + bbox_.width >= frame_width_) || bbox_.x >= frame_width_)
+    {
+        if(bbox_.x >= frame_width_)
+        {
+            bbox_.x = frame_width_ - 2;
+            bbox_.width = 1;
+        }
+        bbox_.width = frame_width_ - bbox_.x - 1;
     }
 
-    _frame.copyTo(last_frame_);
+    std::cout << "new track box" << bbox_ << std::endl;
 
-    // Allocate memory and config KLTFeatureTracker
-
-    backend = VPI_BACKEND_PVA;
-    // Create the stream for the given backend.
-    CHECK_STATUS(vpiStreamCreate(backend, &stream));
-
-    cv::Mat frame = preprocessImage(_frame.clone());
-
-    // Convention between OpenCV image and VPI Image
-    CHECK_STATUS(vpiImageCreateWrapperOpenCVMat(frame, 0, &imgTemplate));
-
-    // Create the reference image wrapper. Let's wrap the cvTemplate for now just
-    // to create the wrapper. Later we'll set it to wrap the actual reference image.
-    CHECK_STATUS(vpiImageCreateWrapperOpenCVMat(frame, 0, &imgReference));
-
-    VPIImageFormat imgFormat;
-    CHECK_STATUS(vpiImageGetFormat(imgTemplate, &imgFormat));
-
-    // Using this first frame's characteristics, create a KLT Bounding Box Tracker payload.
-    // We're limiting the template dimensions to 64x64.
-    CHECK_STATUS(vpiCreateKLTFeatureTracker(backend, frame.cols, frame.rows, imgFormat, NULL, &klt));
-
-    // Parameters we'll use. No need to change them on the fly, so just define them here.
-    VPIKLTFeatureTrackerParams params;
-    CHECK_STATUS(vpiInitKLTFeatureTrackerParams(&params));
-
-    // Output array with estimated bbox for current frame.
-    CHECK_STATUS(vpiArrayCreate(128, VPI_ARRAY_TYPE_KLT_TRACKED_BOUNDING_BOX, 0, &outputBoxList));
-
-    // Output array with estimated transform of input bbox to match output bbox.
-    CHECK_STATUS(vpiArrayCreate(128, VPI_ARRAY_TYPE_HOMOGRAPHY_TRANSFORM_2D, 0, &outputEstimList));
-}
-
-VPITracker::~VPITracker()
-{
-    vpiStreamDestroy(stream);
-    vpiPayloadDestroy(klt);
-    vpiArrayDestroy(inputBoxList);
-    vpiArrayDestroy(inputPredList);
-    vpiArrayDestroy(outputBoxList);
-    vpiArrayDestroy(outputEstimList);
-    vpiImageDestroy(imgReference);
-    vpiImageDestroy(imgTemplate);
-}
-
-cv::Mat VPITracker::preprocessImage(cv::Mat &_frame)
-{
-    // Convert image to correct format (grayscale)
-    if (_frame.channels() == 3)
+    std::vector<cv::KeyPoint> kps;
+    detector_->detect(_frame(bbox_), kps);
+    cv::KeyPointsFilter::retainBest(kps, MAX_TRACK_POINTS_NUM_);
+    for(auto kp:kps)
     {
-        cv::cvtColor(_frame, _frame, cv::COLOR_BGR2GRAY);
+        kp.pt.x += _bbox.x;
+        kp.pt.y += _bbox.y;
+        track_points_.push_back(kp.pt);
     }
+    MIN_TRACK_POINTS_NUM_ = track_points_.size()*2/3;
 
-    if (backend == VPI_BACKEND_PVA)
+
+    std::srand(tracker_id_);
+    color_ = cv::Scalar(std::rand()%255, std::rand()%255, std::rand()%255);
+
+    // Kalman filter stuff
+
+    // Transition State Matrix A
+    // Note: set dT at each processing step!
+    // [ 1 0 dT 0  0 0 ]
+    // [ 0 1 0  dT 0 0 ]
+    // [ 0 0 1  0  0 0 ]
+    // [ 0 0 0  1  0 0 ]
+    // [ 0 0 0  0  1 0 ]
+    // [ 0 0 0  0  0 1 ]
+    cv::setIdentity(kf_.transitionMatrix);
+
+    // Measure Matrix H
+    // [ 1 0 0 0 0 0 ]
+    // [ 0 1 0 0 0 0 ]
+    // [ 0 0 0 0 1 0 ]
+    // [ 0 0 0 0 0 1 ]
+    kf_.measurementMatrix = cv::Mat::zeros(4, 6, CV_32F);
+    kf_.measurementMatrix.at<float>(0) = 1.0f;
+    kf_.measurementMatrix.at<float>(7) = 1.0f;
+    kf_.measurementMatrix.at<float>(16) = 1.0f;
+    kf_.measurementMatrix.at<float>(23) = 1.0f;
+   
+    // Process Noise Covariance Matrix Q
+    // [ Ex   0   0     0     0    0  ]
+    // [ 0    Ey  0     0     0    0  ]
+    // [ 0    0   Ev_x  0     0    0  ]
+    // [ 0    0   0     Ev_y  0    0  ]
+    // [ 0    0   0     0     Ew   0  ]
+    // [ 0    0   0     0     0    Eh ]
+    //cv::setIdentity(kf.processNoiseCov, cv::Scalar(1e-2));
+    kf_.processNoiseCov.at<float>(0) = 0.05; //1e-2;
+    kf_.processNoiseCov.at<float>(7) = 0.05; //1e-2;
+    kf_.processNoiseCov.at<float>(14) = 0.05; //5.0f;
+    kf_.processNoiseCov.at<float>(21) = 0.05; //5.0f;
+    kf_.processNoiseCov.at<float>(28) = 0.05; //1e-2;
+    kf_.processNoiseCov.at<float>(35) = 0.05; //1e-2;
+
+    // Measures Noise Covariance Matrix R
+    cv::setIdentity(kf_.measurementNoiseCov, cv::Scalar(1e-1));
+    
+    ticks_ = cv::getTickCount();
+
+}
+
+void VPITracker::KalmanPredict()
+{
+    double prec_tick = ticks_;
+    ticks_ = (double) cv::getTickCount();
+    double dT = (ticks_ - prec_tick) / cv::getTickFrequency();
+    kf_.transitionMatrix.at<float>(2) = dT;
+    kf_.transitionMatrix.at<float>(9) = dT;
+    kf_state_ = kf_.predict();
+     
+    bbox_.width = kf_state_.at<float>(4);
+    bbox_.height = kf_state_.at<float>(5);
+    bbox_.x = kf_state_.at<float>(0) - bbox_.width/2;
+    bbox_.y = kf_state_.at<float>(1) - bbox_.height / 2;
+    if(bbox_.x < 0)
     {
-        // PVA only supports 16-bit unsigned inputs,
-        // where each element is in 0-255 range, so
-        // no rescaling needed.
-        cv::Mat aux;
-        _frame.convertTo(aux, CV_16U);
-        _frame = aux;
+        bbox_.x = 0;
+    }
+    if(bbox_.y < 0)
+    {
+        bbox_.y = 0;
+    }
+    if(bbox_.width < 0)
+    {
+        bbox_.width = 1;
+    }
+    if(bbox_.height < 0)
+    {
+        bbox_.height = 1;
+    }
+    if((bbox_.y + bbox_.height >= frame_height_) || bbox_.y >= frame_height_)
+    {
+        if(bbox_.y >= frame_height_)
+        {
+            bbox_.y = frame_height_ - 2;
+            bbox_.height = 1;
+        }
+        bbox_.height = frame_height_ - bbox_.y - 1;
+    }
+    if((bbox_.x + bbox_.width >= frame_width_) || bbox_.x >= frame_width_)
+    {
+        if(bbox_.x >= frame_width_)
+        {
+            bbox_.x = frame_width_ - 2;
+            bbox_.width = 1;
+        }
+        bbox_.width = frame_width_ - bbox_.x - 1;
+    }
+    std::cout << "frame width frame height:" << frame_width_ << " " << frame_height_ << std::endl; 
+}
+
+void VPITracker::KalmanUpdate(cv::Rect _new_box)
+{
+    /*
+    if(!accepted_)
+    {
+        found_frames_ ++;
+        if(found_frames_ >= MIN_ACCEPT_FRAMES_)
+        {
+            accepted_ = true;
+        }
+    }
+    missing_frames_ = 0;
+*/
+    kf_measure_.at<float>(0) = _new_box.x + _new_box.width/2;
+    kf_measure_.at<float>(1) = _new_box.y + _new_box.height/2;
+    kf_measure_.at<float>(2) = _new_box.width;
+    kf_measure_.at<float>(3) = _new_box.height;
+
+    if(first_time_)
+    {
+        first_time_ = false;
+        kf_.errorCovPre.at<float>(0) = 1; // px
+        kf_.errorCovPre.at<float>(7) = 1; // px
+        kf_.errorCovPre.at<float>(14) = 1;
+        kf_.errorCovPre.at<float>(21) = 1;
+        kf_.errorCovPre.at<float>(28) = 1; // px
+        kf_.errorCovPre.at<float>(35) = 1; // px
+
+        kf_state_.at<float>(0) = kf_measure_.at<float>(0);
+        kf_state_.at<float>(1) = kf_measure_.at<float>(1);
+        kf_state_.at<float>(2) = 0;
+        kf_state_.at<float>(3) = 0;
+        kf_state_.at<float>(4) = kf_measure_.at<float>(2);
+        kf_state_.at<float>(5) = kf_measure_.at<float>(3);
+        // <<<< Initialization
+
+        kf_.statePost = kf_state_;
     }
     else
     {
-        assert(_frame.type() == CV_8U);
+        kf_.correct(kf_measure_);
     }
-
-    return _frame;
 }
 
-void VPITracker::updateTrackersWithNewFrame(const cv::Mat &_frame)
+template <class T>
+T VPITracker::findMedian(std::vector<T> vec)
 {
-    // Update all bounding box tracked
-    cv::Mat frame = _frame.clone();
+    size_t size = vec.size();
 
-    // Wrap the input arrays into VPIArray's
-    VPIArrayData data = {};
-    data.bufferType = VPI_ARRAY_BUFFER_HOST_AOS;
-    data.buffer.aos.type = VPI_ARRAY_TYPE_KLT_TRACKED_BOUNDING_BOX;
-    data.buffer.aos.capacity = bboxes.capacity();
-    data.buffer.aos.sizePointer = &bboxesSize;
-    data.buffer.aos.data = &bboxes[0];
-    CHECK_STATUS(vpiArrayCreateWrapper(&data, 0, &inputBoxList));
-
-    data.buffer.aos.type = VPI_ARRAY_TYPE_HOMOGRAPHY_TRANSFORM_2D;
-    data.buffer.aos.sizePointer = &predsSize;
-    data.buffer.aos.data = &preds[0];
-    CHECK_STATUS(vpiArrayCreateWrapper(&data, 0, &inputPredList));
-
-    // TODO Line 378 https://docs.nvidia.com/vpi/sample_klt_tracker.html
-    // What happend after recieved new frame ?
-    //
-
-    // Make the reference wrapper point to the reference frame
-    CHECK_STATUS(vpiImageSetWrappedOpenCVMat(imgReference, cvReference));
-
-    // Estimate the bounding boxes in current frame (reference) given their position in previous
-    // frame (template).
-    CHECK_STATUS(vpiSubmitKLTFeatureTracker(stream, backend, klt, imgTemplate, inputBoxList, inputPredList,
-                                            imgReference, outputBoxList, outputEstimList, &params));
-
-    // Wait for processing to finish.
-    CHECK_STATUS(vpiStreamSync(stream));
-
-    // ============================ Update ==================================== //
-    // Now the input and output arrays are locked to properly set up the input for the next iteration.
-    // Input arrays will be updated based on tracking information produced in this iteration.
-    VPIArrayData updatedBBoxData;
-    CHECK_STATUS(vpiArrayLockData(outputBoxList, VPI_LOCK_READ, VPI_ARRAY_BUFFER_HOST_AOS, &updatedBBoxData));
-
-    VPIArrayData estimData;
-    CHECK_STATUS(vpiArrayLockData(outputEstimList, VPI_LOCK_READ, VPI_ARRAY_BUFFER_HOST_AOS, &estimData));
-
-    // Since these arrays are actually wrappers of external data, we don't need to retrieve
-    // the VPI array contents, the wrapped buffers will be updated directly. The arrays must
-    // be locked for read/write anyway.
-    CHECK_STATUS(vpiArrayLock(inputBoxList, VPI_LOCK_READ_WRITE));
-    CHECK_STATUS(vpiArrayLock(inputPredList, VPI_LOCK_READ_WRITE));
-
-    auto *updated_bbox = reinterpret_cast<VPIKLTTrackedBoundingBox *>(updatedBBoxData.buffer.aos.data);
-    auto *estim = reinterpret_cast<VPIHomographyTransform2D *>(estimData.buffer.aos.data);
-
-    // TODO: Need remove bad track
-    for (size_t b = 0; b < bboxes.size(); b++)
+    if(size == 1)
     {
-        // Did tracking failed?
-        if (updated_bbox[b].trackingStatus)
+        return vec[0];
+    }
+    else
+    {
+        std::sort(vec.begin(), vec.end());
+        if(size % 2 == 0)
         {
-            // Do we have to update the input bbox's tracking status too?
-            if (bboxes[b].trackingStatus == 0)
-            {
-                // std::cout << curFrame << " -> dropped " << b << std::endl;
-                bboxes[b].trackingStatus = 1;
-            }
-
-            continue;
-        }
-
-        // Must update template for this bounding box??
-        if (updated_bbox[b].templateStatus)
-        {
-            // std::cout << curFrame << " -> update " << b << std::endl;
-
-            // There are usually two approaches here:
-            // 1. Redefine the bounding box using a feature detector such as
-            //    \ref algo_harris_corners "Harris keypoint detector", or
-            // 2. Use updated_bbox[b], which is still valid, although tracking
-            //    errors might accumulate over time.
-            //
-            // We'll go to the second option, less robust, but simple enough
-            // to implement.
-            bboxes[b] = updated_bbox[b];
-
-            // Signal the input that the template for this bounding box must be updated.
-            bboxes[b].templateStatus = 1;
-
-            // Predicted transform is now identity as we reset the tracking.
-            preds[b] = VPIHomographyTransform2D{};
-            preds[b].mat3[0][0] = 1;
-            preds[b].mat3[1][1] = 1;
-            preds[b].mat3[2][2] = 1;
+            return (vec[size/2 - 1] + vec[size/2]) / 2;
         }
         else
         {
-            // Inform that the template for this bounding box doesn't need to be pdated.
-            bboxes[b].templateStatus = 0;
-
-            // We just update the input transform with the estimated one.
-            preds[b] = estim[b];
+            return vec[size/2];
         }
     }
-
-    // We're finished working with the input and output arrays.
-    CHECK_STATUS(vpiArrayUnlock(inputBoxList));
-    CHECK_STATUS(vpiArrayUnlock(inputPredList));
-  
-    CHECK_STATUS(vpiArrayUnlock(outputBoxList));
-    CHECK_STATUS(vpiArrayUnlock(outputEstimList));
-
-    // Next's reference frame is current's template.
-    // TODO: Check variable
-    std::swap(imgTemplate, imgReference);
-    std::swap(cvTemplate, cvReference);
 }
 
-bool VPITracker::updateTrackersWithNewDetectionResults(const std::vector<cv::Rect>& _dets)
+void VPITracker::updateVPITracker(const cv::Mat& _frame)
 {
-    // What is here ????????????
-    // matching tracker with detection results
-    int box_num = bboxes.size();
-    int dets_num = _dets.size();
-
-    std::cout << "trackers: " << trackers_num << " dets: " << dets_num << std::endl;
-
-    cv::Mat_<int> old_matrix;
-    cv::Mat_<int> new_matrix;
-
-    // Convert vpi box to cv::rect
-    std::vector<cv::Rect> cvBoxes;
-
-    for(auto box : bboxes)
+    // Update points
+    // by the end of this process, track_points_ contains all the currently tracked points in the current frame
+    // track_points_old contains all the positions of the currently tracked points in the last frame
+    // This part has been moved to trakcer_manager class update all points
+    /*
+    std::vector<cv::Point2f> next_keypoints;
+    std::vector<cv::Point2f> prev_keypoints;
+    for(auto kp:track_points_)
     {
-        cv::Rect rec;
-        rec.x = box.bbox.xform.mat3[0][2];
-        rec.y = box.bbox.xform.mat3[1][2];
-        rec.width = box.bbox.width;
-        rec.height = box.bbox.height;
-
-        cvBoxes.push_back(rec);
+        prev_keypoints.push_back(kp);
     }
-
-    if(box_num && dets_num)
+    std::vector<unsigned char> status;
+    std::vector<float> error;
+     
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+    cv::calcOpticalFlowPyrLK(_last_frame, _frame, prev_keypoints, next_keypoints, status, error);
+    std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+    std::chrono::duration<double> time_used = std::chrono::duration_cast<std::chrono::duration<double>>(t2-t1);
+    std::cout<<"Optical flow time: " << time_used.count() << "seconds" << std::endl;
+  
+    
+    std::vector<int> vec_x;
+    std::vector<int> vec_y;
+    std::vector<cv::Point2f>old_track_points; 
+    int i = 0;
+    for(auto iter = track_points_.begin(); iter != track_points_.end(); i ++)
     {
-        std::cout << "initialize cost_matrix" << std::endl;
-        cv::Mat_<int> cost_matrix(box_num, dets_num);
-        int i = 0;
-
-        for(auto rec : cvBoxes)
+        if(status[i] == 0)
         {
-            int j = 0;
-            for(auto det:_dets)
-            {
-                std::cout <<"get matching score (" << i <<","<<j <<")=" ;
-                cost_matrix(i, j) = getMatchingScore(rec, det);
-                std::cout << (int)cost_matrix(i, j) << std::endl;
-                j ++;
-            }
-            i ++;
+            iter = track_points_.erase(iter);
+            continue;
         }
-
-        old_matrix = cost_matrix.clone();
-        Munkres m;
-        std::cout << "start hungarian " << box_num << " x " << dets_num << std::endl;
-        std::cout << cost_matrix << std::endl;
-        m.solve(cost_matrix);
-        std::cout << "hungarian end" << std::endl;
-        new_matrix = cost_matrix.clone();
+        vec_x.push_back(next_keypoints[i].x - iter->x);
+        vec_y.push_back(next_keypoints[i].y - iter->y);
+        old_track_points.push_back(*iter);
+        *iter = next_keypoints[i];
+        iter ++;
     }
+    */
+   
+    std::cout << "start updating lktracker" <<std::endl;
 
-    std::vector<int> matched_dets(dets_num, 0);
-
-    for(int i = 0; i < box_num; i++)
+    std::vector<int> vec_x;
+    std::vector<int> vec_y;
+    int ind = 0;
+    std::cout << "old points: " << old_track_points_.size() << std::endl;
+    std::cout << "new points: " << track_points_.size() << std::endl;
+    for(auto iter = track_points_.begin(); iter != track_points_.end(); iter ++)
     {
-        bool matched = false;
+        vec_x.push_back(iter->x - old_track_points_[ind].x);
+        vec_y.push_back(iter->y - old_track_points_[ind].y);
+        ind ++;
+    }
 
-        for(int j = 0; j < dets_num; j++)
+
+    // Update bounding box
+    std::cout << "  start updating bounding box" <<std::endl;
+    int median_x = findMedian(vec_x);
+    int median_y = findMedian(vec_y);
+    std::vector<float> vec_scale;
+    auto iter1 = track_points_.begin();
+    
+    for(size_t i = 0; i < old_track_points_.size(); i ++)
+    {   
+        iter1 ++;
+        auto iter2 = iter1;
+        iter1 --;
+        for(size_t j = i+1; j < old_track_points_.size(); j ++)
         {
-            if(new_matrix(i, j) == 0)
+            auto distance = [](cv::Point2f pa, cv::Point2f pb)
             {
-                if(old_matrix(i, j) < COST_THRESDHOLD_)
-                {
-
-                }
+                return sqrt((pa.x-pb.x)*(pa.x-pb.x) + (pa.y-pb.y)*(pa.y-pb.y));
+            };
+            float old_dis = distance(old_track_points_[i], old_track_points_[j]);
+            float new_dis = distance(*iter1, *iter2);
+            if(old_dis > 0.001)
+            {
+                vec_scale.push_back(new_dis/old_dis);
             }
+            iter2 ++;
+        }
+        iter1 ++;
+    }
+    
+    float median_scale = findMedian(vec_scale) * 1.003;
+    if(median_scale > SCALE_THRESHOLD)
+    {
+        median_scale = SCALE_THRESHOLD;
+    }
+    int new_width = bbox_.width * median_scale;
+    int new_height = bbox_.height * median_scale;
+    if(new_width < 10 || new_height < 10)
+    {
+        status_ = false;
+        new_width = 10;
+        new_height = 10;
+    }
+    int new_x = bbox_.x + median_x - (new_width - bbox_.width)/2;
+    int new_y = bbox_.y + median_y - (new_height - bbox_.height)/2;
+    if(new_x >= frame_width_ || new_y >= frame_height_)
+    {
+        status_ = false;
+        throw std::invalid_argument("bounding box deprecated"); 
+    }
+    if(new_x < 0)
+    {
+        new_x = 0; 
+    }
+    if(new_x + new_width > frame_width_)
+    {
+        new_width = frame_width_ - new_x - 2;
+    }
+    if(new_y < 0)
+    {
+        new_y = 0;
+    }
+    if(new_y + new_height > frame_height_)
+    {
+        new_height = frame_height_ - new_y - 2;
+    }
+    cv::Rect new_box = cv::Rect(new_x, new_y, new_width, new_height);
+    std::cout << "new_box" << new_box << std::endl; 
+    
+    bbox_ = new_box;
+    
+    if(USE_KF_)
+    {
+        KalmanUpdate(new_box);
+    }
+    else
+    {
+        bbox_ = new_box;
+    }
+
+    if(!first_time_)
+    {
+        if(USE_KF_)
+        {
+            KalmanPredict();
+            std::cout << "kalman predict" << std::endl;
         }
     }
+    std::cout << "bbox" << bbox_ << std::endl;
+
+    // get rid of points out of the bounding box
+    std::cout << "  start getting rid of points out of box" << std::endl;
+    for(auto iter = track_points_.begin(); iter != track_points_.end(); )
+    {
+        auto inBox = [](cv::Point2f point, cv::Rect rec)
+        {
+            if(point.x > rec.x && point.x < (rec.x+rec.width) && point.y > rec.y && point.y < (rec.y+rec.height))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        };
+        if(!inBox(*iter, bbox_))
+        {
+            iter = track_points_.erase(iter);
+            continue;
+        }
+        iter ++;
+    }
+
+    // get more keypoints in the bounding box if necessary
+    std::cout << "  get more points in box" << std::endl << bbox_ <<std::endl;
+    if(track_points_.size() < MIN_TRACK_POINTS_NUM_)
+    {
+        track_points_.clear();
+        std::vector<cv::KeyPoint> kps;
+        detector_->detect(_frame(bbox_), kps);
+        if(kps.size() > MAX_TRACK_POINTS_NUM_)
+        {
+            cv::KeyPointsFilter::retainBest(kps, MAX_TRACK_POINTS_NUM_);
+        }
+        for(auto kp:kps)
+        {
+            kp.pt.x += bbox_.x;
+            kp.pt.y += bbox_.y;
+            track_points_.push_back(kp.pt);
+        }
+    }
+    
+    // stop tracking if too few tracking points
+    if(track_points_.size() < 2)
+    {
+        status_ = false;
+    }
+    
+    std::cout << "updating lktracker done" <<std::endl;
 }
 
-float VPITracker::getIOU(const cv::Rect _rec1, const cv::Rect _rec2)
+cv::Ptr<cv::FastFeatureDetector> VPITracker::detector_ = cv::FastFeatureDetector::create();
+
+VPITrackerManager::VPITrackerManager(cv::Mat _frame, std::vector<cv::Rect> _rois):
+    ids_(0),
+    COST_THRESHOLD_(100),
+    USE_KF_(false)
+{
+    for(auto roi:_rois)
+    {
+        auto tracker_ptr = new LkTracker(_frame, roi, ids_, USE_KF_);
+        tracker_ptrs_.push_back(tracker_ptr);
+        ids_ = (ids_+1)%100000;
+    }
+    _frame.copyTo(last_frame_);
+        
+}
+
+std::vector<cv::Rect> VPITrackerManager::getAllBox()
+{
+    std::vector<cv::Rect> recs;
+    for(auto tracker_ptr : tracker_ptrs_)
+    {
+        if(tracker_ptr->accepted_)
+        {
+            recs.push_back(tracker_ptr->getBbox());
+        }
+    }
+    return recs;
+}
+
+std::vector<cv::Scalar> VPITrackerManager::getAllColor()
+{
+    std::vector<cv::Scalar> colors;
+    for(auto tracker_ptr : tracker_ptrs_)
+    {
+        if(tracker_ptr->accepted_)
+        {
+            colors.push_back(tracker_ptr->getColor());
+        }
+    }
+    return colors;
+}
+
+
+std::vector<cv::Point2f> VPITrackerManager::getAllPoints()
+{
+    return all_new_points_;
+}
+
+void VPITrackerManager::updateTrackersWithNewFrame(const cv::Mat& _frame)
+{
+    // Update all tracking points
+    //int tracker_num = tracker_ptrs_.size();
+
+    std::vector<cv::Point2f> all_old_points;
+    //std::vector<cv::Point2f> all_new_points;
+    all_new_points_.clear();
+
+    for(auto tracker_ptr:tracker_ptrs_)
+    {
+        for(auto iter=tracker_ptr->track_points_.begin(); iter != tracker_ptr->track_points_.end(); iter ++)
+        {
+            all_old_points.push_back(*iter);
+        }
+    }
+
+    std::vector<unsigned char> status;
+    std::vector<float> error;
+    std::cout << "old points num: " << all_old_points.size() << std::endl;
+    if(all_old_points.size() >= 2)
+    {
+        cv::calcOpticalFlowPyrLK(last_frame_, _frame, all_old_points, all_new_points_, status, error);
+        int index = 0;
+        for(auto tracker_ptr:tracker_ptrs_)
+        {
+            tracker_ptr->old_track_points_.clear();
+            for(auto iter = tracker_ptr->track_points_.begin(); iter != tracker_ptr->track_points_.end(); index ++)
+            {
+                if(status[index] == 0)
+                {
+                    iter = tracker_ptr->track_points_.erase(iter);
+                    continue;
+                }
+                tracker_ptr->old_track_points_.push_back(*iter);
+                *iter = all_new_points_[index];
+                iter ++;
+            }
+        }
+    }
+   
+    // Update all tracking boxes 
+    for(auto tracker_ptr:tracker_ptrs_) 
+    {
+        if(tracker_ptr->track_points_.size() < 2)
+        {
+            tracker_ptr->status_ = false;
+        }
+        if(tracker_ptr->getStatus())
+        {
+            try
+            {
+                tracker_ptr->updateLkTracker(_frame);
+            }
+            catch(std::invalid_argument& e)
+            {
+                std::cerr << e.what() << std::endl;
+            }
+        }
+    }
+
+
+    std::cout << "remove status false trackers" << std::endl;
+    // remove rejected trackers
+    auto old_tracker_ptrs = tracker_ptrs_;
+    tracker_ptrs_.clear();
+    for(auto tracker_ptr:old_tracker_ptrs)
+    {
+        if(!tracker_ptr->getStatus())
+        {
+            delete tracker_ptr;
+        }
+        else
+        {
+            tracker_ptrs_.push_back(tracker_ptr);
+        }
+    }
+
+    // update the last_frame_
+    _frame.copyTo(last_frame_);
+}
+
+float VPITrackerManager::getIOU(const cv::Rect _rec1, const cv::Rect _rec2)
 {
     auto max = [](int a, int b){return a>b?a:b;};
     auto min = [](int a, int b){return a<b?a:b;};
@@ -321,7 +586,7 @@ float VPITracker::getIOU(const cv::Rect _rec1, const cv::Rect _rec2)
     return iou;
 }
 
-int VPITracker::getMatchingScore(const cv::Rect _rec1, const cv::Rect _rec2)
+int VPITrackerManager::getMatchingScore(const cv::Rect _rec1, const cv::Rect _rec2)
 {
     // score = (1 - iou) * dx/width * dy/height * 100
     float iou = getIOU(_rec1, _rec2);
@@ -347,3 +612,142 @@ int VPITracker::getMatchingScore(const cv::Rect _rec1, const cv::Rect _rec2)
     return score;
 }
 
+bool VPITrackerManager::updateTrackersWithNewDetectionResults(const std::vector<cv::Rect>& _dets)
+{
+    // matching trackers with detection results
+    int trackers_num = tracker_ptrs_.size();
+    int dets_num = _dets.size();
+
+    std::cout << "trackers: " << trackers_num << " dets: " << dets_num << std::endl;
+
+    cv::Mat_<int> old_matrix;
+    cv::Mat_<int> new_matrix;
+
+    if(trackers_num && dets_num){
+
+        std::cout << "initialize cost_matrix" << std::endl;
+        cv::Mat_<int> cost_matrix(trackers_num, dets_num);
+        int i = 0;
+        for(auto tracker_ptr:tracker_ptrs_)
+        {
+            int j = 0;
+            for(auto det:_dets)
+            {
+                std::cout <<"get matching score (" << i <<","<<j <<")=" ;
+                cost_matrix(i, j) = getMatchingScore(tracker_ptr->getBbox(), det);
+                std::cout << (int)cost_matrix(i, j) << std::endl;
+                j ++;
+            }
+            i ++;
+        }
+    
+        old_matrix = cost_matrix.clone();
+        Munkres m;
+        std::cout << "start hungarian " << trackers_num << " x " << dets_num << std::endl;
+        std::cout << cost_matrix << std::endl;
+        m.solve(cost_matrix);
+        std::cout << "hungarian end" << std::endl;
+        new_matrix = cost_matrix.clone();
+    }
+
+
+    std::vector<int> matched_dets(dets_num, 0);
+
+    for(int i = 0; i < trackers_num; i ++)
+    {
+        bool matched = false;
+        for(int j = 0; j < dets_num; j ++)
+        {
+            
+            if(new_matrix(i, j) == 0)
+            {
+                if(old_matrix(i, j) < COST_THRESHOLD_) // even if it's matched, if the cost is too high, we don't use it
+                {
+                    matched_dets[j] = 1;
+                    matched = true;
+                    tracker_ptrs_[i] -> missing_frames_ = 0;
+                    tracker_ptrs_[i] -> bbox_ = _dets[j];
+                    if(USE_KF_)
+                    {
+                        tracker_ptrs_[i] -> KalmanUpdate(_dets[i]);
+                    }
+                    std::cout << "tracker " << i << " matched with detector " << j << std::endl;
+                    if(!tracker_ptrs_[i]->accepted_)
+                    {
+                        tracker_ptrs_[i] -> getting_frames_ ++;
+                        if(tracker_ptrs_[i] -> getting_frames_ > tracker_ptrs_[i]->MIN_ACCEPT_FRAMES_)
+                        {
+                            tracker_ptrs_[i]->accepted_ = true;
+                        }
+                    }
+                }
+            }
+        }
+        if(!matched)
+        {
+            tracker_ptrs_[i] -> missing_frames_ ++;
+            if(tracker_ptrs_[i]->missing_frames_ > tracker_ptrs_[i]->MIN_REJECT_FRAMES_)
+            {
+                tracker_ptrs_[i]->rejected_ = true;
+            }
+        }
+    }
+  
+    // add new trackers
+    std::cout << "add new trackers" << std::endl;
+    int det_ind = 0;
+    for(auto det:_dets)
+    {
+        if(!matched_dets[det_ind])
+        {
+            std::cout << "new LkTracker in" << last_frame_.cols << " " << last_frame_.rows;
+            std::cout << det <<std::endl; 
+            
+            bool duplicated = false;
+
+            if(det.x < 0)
+            {
+                det.x = 0;
+            }
+            if(det.y < 0)
+            {
+                det.y = 0;
+            }
+
+            for(auto tracker_ptr:tracker_ptrs_)
+            {
+                if(getIOU(tracker_ptr->bbox_, det) > 0.8)
+                {
+                    duplicated - true;
+                }
+            }
+            
+            if(!duplicated)
+            {
+                auto tracker_ptr = new LkTracker(last_frame_, det, ids_, USE_KF_);
+                std::cout << "new LkTracker get" << std::endl;
+                tracker_ptrs_.push_back(tracker_ptr);
+                ids_ = (ids_+1)%100000;
+            }
+        }
+        det_ind ++;
+    }
+
+    std::cout << "remove rejected trackers" << std::endl;
+    // remove rejected trackers
+    auto old_tracker_ptrs = tracker_ptrs_;
+    tracker_ptrs_.clear();
+    for(auto tracker_ptr:old_tracker_ptrs)
+    {
+        if(tracker_ptr->rejected_)
+        {
+            delete tracker_ptr;
+        }
+        else
+        {
+            tracker_ptrs_.push_back(tracker_ptr);
+        }
+    }
+
+    return true;
+}
