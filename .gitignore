@@ -31,9 +31,10 @@
 *.out
 *.app
 
-Task3-TensorRT-Engine-with-Zed-2/build
+TensorRT-Engine/build
 
+Counting-App/.idea/
 
-Task4-Counting-Dragon-Fruit/BBTracker/.idea/
+Counting-App/cmake-build-debug/
 
-Task4-Counting-Dragon-Fruit/BBTracker/cmake-build-debug/
+Counting-App/build
