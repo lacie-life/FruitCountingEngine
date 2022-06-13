@@ -37,13 +37,11 @@ Building a camera module mounted on a UAV that collects data on images of dragon
     - [x] Build and Run
     - [x] Fixing crash (fixed bug => ZED SDK 3.6.5) 
   - [x] Bounding Box Tracker
-    - [ ] SSD-Tracker (pending)
-    - [ ] VPI BBTracker (Testing)
-    - [x] LK Tracker (accuracy too low => check LK tracker) 
-    - [x] MO TRacker (testing) 
+    - [x] MO Tracker (testing) 
+    - [ ] MO Tracker with VPI (Pending)
+
   - [x] Counting Object 
     - [x] MO Tracker counting 
-    - [ ] LK Tracker counting
     - [ ] Improve counting algorithm (trying bounding box optical flow and SfM)
   - [ ] Improve Tracking and Counting Algorithm
   - [ ] Test with dragon fruit model and data
