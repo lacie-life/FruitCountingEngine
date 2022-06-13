@@ -46,6 +46,7 @@ Building a camera module mounted on a UAV that collects data on images of dragon
   - [ ] Improve Tracking and Counting Algorithm
   - [ ] Test with dragon fruit model and data
 - [ ] Assign 3D position 
+- [ ] Simple Qt GUI 
  
 ### Phase 2
 - [ ] Box for Mynt and Quad Camera
