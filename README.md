@@ -37,7 +37,6 @@ Building a camera module mounted on a UAV that collects data on images of dragon
     - [x] Build and Run
     - [x] Fixing crash (fixed bug => ZED SDK 3.6.5) 
   - [x] Bounding Box Tracker
-    - [ ] ZED 2 custom box tracker (pending)
     - [ ] SSD-Tracker (pending)
     - [ ] VPI BBTracker (Testing)
     - [x] LK Tracker (accuracy too low => check LK tracker) 
