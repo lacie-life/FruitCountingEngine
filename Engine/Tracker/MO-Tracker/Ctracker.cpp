@@ -54,18 +54,18 @@ void CTracker::UpdateHungrian(
         float fps
         )
 {
-    size_t N = tracks.size();		// треки
-    size_t M = regions.size();	// детекты
+    size_t N = tracks.size();		// tracks
+    size_t M = regions.size();	// detects
 
-    assignments_t assignment(N, -1); // назначения
+    assignments_t assignment(N, -1); // destination
 
     if (!tracks.empty())
     {
-        // Матрица расстояний от N-ного трека до M-ного детекта.
+        // Distance matrix from the Nth track to the Mth detector.
         distMatrix_t Cost(N * M);
 
         // -----------------------------------
-        // Треки уже есть, составим матрицу расстояний
+        // There are already tracks, let's make a matrix of distances
         // -----------------------------------
         const track_t maxPossibleCost = grayFrame.cols * grayFrame.rows;
         track_t maxCost = 0;
