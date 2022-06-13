@@ -1,8 +1,4 @@
-# Master-Thesis
-
-## Name: 
-
-Dragon fruit yield estimation system using UAV
+# Fruit Counting Engine
 
 ## Motivation: 
 
@@ -13,6 +9,7 @@ Building a camera module mounted on a UAV that collects data on images of dragon
 - [x] Jetson AGX Xavier (32GB)
 - [x] ZED 2 camera
 - [x] Drone  
+- [ ] RTK
 
 ## Software
 
