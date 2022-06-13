@@ -133,7 +133,7 @@ class VPITrackerManager{
         const bool USE_KF_; // use kalman filter
 
         // Arrays that will store our input bboxes and predicted transform.
-        VPIArray inputBoxList = NULL,
+        VPIArray inputBoxList = NULL;
         VPIArray inputPredList = NULL;
 
         VPIBackend backend;
