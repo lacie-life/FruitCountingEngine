@@ -24,13 +24,11 @@
 #include <opencv2/opencv.hpp>
 
 
-unsigned int
-minsize(cv::Mat_<int> &m) {
+unsigned int minsize(cv::Mat_<int> &m) {
     return (m.rows < m.cols) ? m.rows : m.cols;
 }
 
-int
-maxValue(cv::Mat_<int> &m) {
+int maxValue(cv::Mat_<int> &m) {
     int max = 0;//std::numeric_limits<int>::min();
     for (int i = 0; i < m.rows; i++) {
         for (int j = 0; j < m.cols; j++) {
@@ -40,8 +38,7 @@ maxValue(cv::Mat_<int> &m) {
     return max;
 }
 
-void
-extendMat(cv::Mat_<int> &m, unsigned int rows, unsigned int cols, int value = 0) {
+void extendMat(cv::Mat_<int> &m, unsigned int rows, unsigned int cols, int value = 0) {
     cv::Size2i interSize;
     interSize.height = std::min<int>(rows, m.rows);
     interSize.width = std::min<int>(cols, m.cols);
@@ -52,8 +49,7 @@ extendMat(cv::Mat_<int> &m, unsigned int rows, unsigned int cols, int value = 0)
     m = tm;
 }
 
-void
-replace_infinites(cv::Mat_<int> &matrix) {
+void replace_infinites(cv::Mat_<int> &matrix) {
     const unsigned int rows = matrix.rows,
     columns = matrix.cols;
     //  assert( rows > 0 && columns > 0 );
@@ -93,8 +89,7 @@ replace_infinites(cv::Mat_<int> &matrix) {
     
 }
 
-void
-minimize_along_direction(cv::Mat_<int> &matrix, bool over_columns) {
+void minimize_along_direction(cv::Mat_<int> &matrix, bool over_columns) {
     const unsigned int outer_size = over_columns ? matrix.cols : matrix.rows,
     inner_size = over_columns ? matrix.rows : matrix.cols;
     
@@ -125,8 +120,7 @@ minimize_along_direction(cv::Mat_<int> &matrix, bool over_columns) {
 }
 
 
-bool
-Munkres::find_uncovered_in_matrix(double item, unsigned int &row, unsigned int &col) const {
+bool Munkres::find_uncovered_in_matrix(double item, unsigned int &row, unsigned int &col) const {
     unsigned int rows = matrix.rows,
     columns = matrix.cols;
     
@@ -145,8 +139,7 @@ Munkres::find_uncovered_in_matrix(double item, unsigned int &row, unsigned int &
     return false;
 }
 
-bool
-Munkres::pair_in_list(const std::pair<int,int> &needle, const std::list<std::pair<int,int> > &haystack) {
+bool Munkres::pair_in_list(const std::pair<int,int> &needle, const std::list<std::pair<int,int> > &haystack) {
     for ( std::list<std::pair<int,int> >::const_iterator i = haystack.begin() ; i != haystack.end() ; i++ ) {
         if ( needle == *i ) {
             return true;
@@ -156,8 +149,7 @@ Munkres::pair_in_list(const std::pair<int,int> &needle, const std::list<std::pai
     return false;
 }
 
-int
-Munkres::step1(void) {
+int Munkres::step1(void) {
     const unsigned int rows = matrix.rows,
     columns = matrix.cols;
     
@@ -189,8 +181,7 @@ Munkres::step1(void) {
     return 2;
 }
 
-int
-Munkres::step2(void) {
+int Munkres::step2(void) {
     const unsigned int rows = matrix.rows,
     columns = matrix.cols;
     unsigned int covercount = 0;
@@ -225,8 +216,7 @@ Munkres::step2(void) {
     return 3;
 }
 
-int
-Munkres::step3(void) {
+int Munkres::step3(void) {
     /*
      Main Zero Search
      
@@ -251,8 +241,7 @@ Munkres::step3(void) {
     return 4; // no starred zero in the row containing this primed zero
 }
 
-int
-Munkres::step4(void) {
+int Munkres::step4(void) {
     const unsigned int rows = matrix.rows,
     columns = matrix.cols;
     
@@ -350,8 +339,7 @@ Munkres::step4(void) {
     return 2;
 }
 
-int
-Munkres::step5(void) {
+int Munkres::step5(void) {
     const unsigned int rows = matrix.rows,
     columns = matrix.cols;
     /*
@@ -404,8 +392,7 @@ Munkres::step5(void) {
  * (extra 0 values are replaced with -1)
  *
  */
-void
-Munkres::solve(cv::Mat_<int> &m) {
+void Munkres::solve(cv::Mat_<int> &m) {
     const unsigned int rows = m.rows,
     columns = m.cols,
     size = std::max<unsigned int>(rows, columns);
