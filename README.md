@@ -1,8 +1,4 @@
-# Master-Thesis
-
-## Name: 
-
-Dragon fruit yield estimation system using UAV
+# Fruit Counting Engine
 
 ## Motivation: 
 
@@ -13,6 +9,7 @@ Building a camera module mounted on a UAV that collects data on images of dragon
 - [x] Jetson AGX Xavier (32GB)
 - [x] ZED 2 camera
 - [x] Drone  
+- [ ] RTK
 
 ## Software
 
@@ -37,21 +34,22 @@ Building a camera module mounted on a UAV that collects data on images of dragon
     - [x] Build and Run
     - [x] Fixing crash (fixed bug => ZED SDK 3.6.5) 
   - [x] Bounding Box Tracker
-    - [ ] SSD-Tracker (pending)
-    - [ ] VPI BBTracker (Testing)
-    - [x] LK Tracker (accuracy too low => check LK tracker) 
-    - [x] MO TRacker (testing) 
+    - [x] MO Tracker (testing) 
+    - [ ] MO Tracker with VPI (Pending)
+
   - [x] Counting Object 
     - [x] MO Tracker counting 
-    - [ ] LK Tracker counting
     - [ ] Improve counting algorithm (trying bounding box optical flow and SfM)
   - [ ] Improve Tracking and Counting Algorithm
   - [ ] Test with dragon fruit model and data
 - [ ] Assign 3D position 
+- [ ] Simple Qt GUI 
  
 ### Phase 2
 - [ ] Box for Mynt and Quad Camera
 - [ ] Implement with Quad Camera, MyntEye and RTK
 - [ ] 3D Reconstruction (GTSAM SfM and PMVS2) => Have some problem with PMVS 2 and libjpeg of OpenCV (LOL) => GreenHouseAR
 
+## Project report
 
+[Overleaf](https://www.overleaf.com/read/nymnjngppwvc)
