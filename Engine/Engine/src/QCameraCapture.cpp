@@ -1,5 +1,4 @@
 #include "QCameraCapture.h"
-#include "AppConstants.h"
 
 #include <QDebug>
 #include <QString>

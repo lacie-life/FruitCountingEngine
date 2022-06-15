@@ -2,6 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QThread>
+#include "AppModel.h"
+#include "QCameraCapture.h"
 
 namespace Ui {
 class MainWindow;
@@ -15,8 +18,14 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+public slots:
+    void openCamera();
+    void closeCamera();
+
 private:
     Ui::MainWindow *ui;
+    AppModel* m_model;
+    QCameraCapture* m_camera;
 };
 
 #endif // MAINWINDOW_H

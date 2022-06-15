@@ -19,12 +19,12 @@
      <rect>
       <x>20</x>
       <y>70</y>
-      <width>561</width>
-      <height>361</height>
+      <width>601</width>
+      <height>401</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">margin-left: 10px; border-radius: 25px; background: white; color: #4A0C46;</string>
+     <string notr="true">margin-left: 10px; border-radius: 25px; background: white; color: #4A0C46;border: 1px;</string>
     </property>
     <property name="text">
      <string/>
@@ -67,6 +67,19 @@
     </property>
     <property name="text">
      <string>Detect</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="stopButton">
+    <property name="geometry">
+     <rect>
+      <x>640</x>
+      <y>240</y>
+      <width>89</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Stop</string>
     </property>
    </widget>
   </widget>

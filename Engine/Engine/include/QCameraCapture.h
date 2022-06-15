@@ -14,6 +14,13 @@
 
 Q_DECLARE_METATYPE(cv::Mat)
 
+#ifndef MACRO_DEFINE
+#define MACRO_DEFINE
+
+#define CONSOLE qDebug() << "[" << __FUNCTION__ << "] "
+
+#endif
+
 class QCameraCapture : public QObject
 {
     Q_OBJECT

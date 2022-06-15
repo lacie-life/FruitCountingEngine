@@ -56,7 +56,7 @@ link_directories(/usr/lib/x86_64-linux-gnu/)
 FILE(GLOB_RECURSE SRC_FILES src/*.c*
                             yolov5_detection.cpp)
 FILE(GLOB_RECURSE HDR_FILES include/*.h*
-                            yolov5_detection.cpp)
+                            yolov5_detection.h)
 
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std=c++11)
 

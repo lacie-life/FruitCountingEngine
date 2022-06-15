@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/jun/Github/FruitCountingEngine/Engine/Tracker/MO-Tracker/graph/fheap.c
+stdlib.h
+-
+math.h
+-
+stdio.h
+-
+fheap.h
+/home/jun/Github/FruitCountingEngine/Engine/Tracker/MO-Tracker/graph/fheap.h
+
+/home/jun/Github/FruitCountingEngine/Engine/Tracker/MO-Tracker/graph/fheap.h
+stdio.h
+-
+

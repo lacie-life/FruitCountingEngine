@@ -1,12 +1,12 @@
-#include "QImageProcessing.h"
+#include "QMODetAndTrack.h"
 
-QImageProcessing::QImageProcessing(QObject *parent)
+QMODetAndTrack::QMODetAndTrack(QObject *parent)
     :  QObject{parent}
 {
 
 }
 
-QImageProcessing::~QImageProcessing()
+QMODetAndTrack::~QMODetAndTrack()
 {
 
 }
