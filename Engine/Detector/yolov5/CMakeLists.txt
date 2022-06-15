@@ -80,7 +80,8 @@ target_link_libraries(yolov5-detector
                         ${GLUT_LIBRARY}
                         ${GLEW_LIBRARIES}
                         ${OpenCV_LIBRARIES}
-                        ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
+                        ${CUDA_CUDA_LIBRARY}
+                        ${CUDA_CUDART_LIBRARY})
 
 
 

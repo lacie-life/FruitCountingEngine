@@ -45,21 +45,21 @@ endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Detector/yolov5)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Tracker)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Engine/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/EngineGUI/include)
 
 # ==================== Engine GUI ================================== # 
 # ================================================================== #
-file(GLOB HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/Engine/include/*.h)
-file(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/Engine/src/*.cpp)
+file(GLOB HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/EngineGUI/include/*.h)
+file(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/EngineGUI/src/*.cpp)
 
 source_group("Header Files" FILES ${HEADERS})
 source_group("Source Files" FILES ${SOURCES})
 
-set(UI ${CMAKE_CURRENT_LIST_DIR}/Engine/ui/mainwindow.ui)
+set(UI ${CMAKE_CURRENT_LIST_DIR}/EngineGUI/ui/mainwindow.ui)
 
 qt5_wrap_ui(UI_HEADERS ${UI})
 
-add_executable(FruitCountingEngine
+add_executable(EngineGUI
     ${HEADERS}
     ${SOURCES}
     ${UI_HEADERS}
@@ -71,7 +71,7 @@ else()
     set(ZED_LIBS ${ZED_STATIC_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_LIBRARY})
 endif()
 
-target_link_libraries(FruitCountingEngine
+target_link_libraries(EngineGUI
     Qt5::Widgets
     Qt5::Core
     Qt5::Sql
