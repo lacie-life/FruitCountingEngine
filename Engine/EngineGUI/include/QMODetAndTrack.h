@@ -17,7 +17,9 @@
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "MO-Tracker/pipeline.h"
+#include "yolov5_detection.h"
+#include "MO-Tracker/defines.h"
+#include "MO-Tracker/Ctracker.h"
 
 class QMODetAndTrack : public QObject
 {

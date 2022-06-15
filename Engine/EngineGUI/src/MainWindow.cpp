@@ -7,6 +7,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    qRegisterMetaType<cv::Mat>("cv::Mat");
+
     m_model = new AppModel();
 
     m_camera = new QCameraCapture();
