@@ -30,6 +30,8 @@ public:
     explicit AppModel(QObject *parent = nullptr);
     ~AppModel();
 
+    void readSettingFile(QString path);
+
 signals:
     void imageReady(QPixmap pixmap);
 
@@ -39,6 +41,7 @@ public slots:
 
 public:
     APP_STATE m_state;
+    QMODetAndTrack* m_detAndTrack;
 
 };
 
