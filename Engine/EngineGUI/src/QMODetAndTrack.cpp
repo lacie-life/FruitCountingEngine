@@ -16,7 +16,7 @@ QMODetAndTrack::QMODetAndTrack(QObject *parent)
     drawCount = gui_setting.value("draw_count").toBool();
     drawOther = gui_setting.value("draw_other").toBool();
 
-    direction = gui_setting.value("drirection").toInt();
+    direction = gui_setting.value("direction").toInt();
     useCrop = gui_setting.value("crop").toBool();
 
     cropFrameWidth = gui_setting.value("crop_width").toInt();
