@@ -36,14 +36,21 @@ Building a camera module mounted on a UAV that collects data on images of dragon
   - [x] Bounding Box Tracker
     - [x] MO Tracker (testing) 
     - [ ] MO Tracker with VPI (Pending)
-
   - [x] Counting Object 
     - [x] MO Tracker counting 
     - [ ] Improve counting algorithm (trying bounding box optical flow and SfM)
   - [ ] Improve Tracking and Counting Algorithm
   - [ ] Test with dragon fruit model and data
+  - [ ] Simple GUI
+    - [x] Control start/stop camera
+    - [ ] Counting control
+
 - [ ] Assign 3D position 
+  - [ ] Visual Odometry run-time
+
 - [ ] Simple Qt GUI 
+  - [ ] ROS bag record
+  - [ ] 3D Reconstruction (GTSAM SfM and PMVS2)
  
 ### Phase 2
 - [ ] Box for Mynt and Quad Camera
