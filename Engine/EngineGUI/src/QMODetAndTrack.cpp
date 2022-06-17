@@ -322,6 +322,16 @@ void QMODetAndTrack::Process()
     csvFile.close();
 }
 
+void QMODetAndTrack::init() 
+{
+    // TODO
+}
+
+void QMODetAndTrack::processv2(cv::Mat image) 
+{
+    // TODO
+}
+
 void QMODetAndTrack::DrawTrack(cv::Mat frame, int resizeCoeff, const CTrack &track, bool drawTrajectory, bool isStatic)
 {
     auto ResizeRect = [&](const cv::Rect& r) -> cv::Rect

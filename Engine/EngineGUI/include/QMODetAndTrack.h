@@ -32,6 +32,10 @@ public:
 
     void Process();
 
+    // ZED 2 camera
+    void init();
+    void processv2(cv::Mat image);
+
     void DrawTrack(cv::Mat frame,
                    int resizeCoeff,
                    const CTrack& track,
@@ -52,6 +56,7 @@ public:
                      std::map <std::string, int> &countObjects_RighttoLeft);
 
 signals:
+    void counting(int number); 
 
 private:
     bool saveVideo;
@@ -69,6 +74,20 @@ private:
     float detectThreshold;
     std::vector<cv::Scalar> m_colors;
     std::string desiredObjectsString;
+
+    // Zed 2 Camera
+    std::vector<float> desireObjects;
+    cv::VideoWriter m_writer;
+    std::map<std::string, int>countObjects_LefttoRight;
+    std::map<std::string, int> countObjects_RighttoLeft;
+    double fontScale;
+    double tFrameModification;
+    double tDetection;
+    double tTracking;
+    double tCounting;
+    double tDTC;
+    double tStart;
+    std::ofstream csvFile;
 
     std::string modelFile;
     YoLoObjectDetection* detector;
