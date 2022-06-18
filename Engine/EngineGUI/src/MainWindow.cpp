@@ -66,7 +66,8 @@ void MainWindow::openCamera()
     connect(m_camera->thread(), &QThread::started, m_camera, &QCameraCapture::stream);
     connect(m_camera->thread(), &QThread::finished, m_camera, &QCameraCapture::deleteLater);
     connect(m_camera, &QCameraCapture::frameReady, m_model, &AppModel::processImage);
-    connect(m_camera, &QCameraCapture::frameUIReady, ui->imageView, &QLabel::setPixmap);
+    connect(m_model, &AppModel::imageReady, ui->imageView, &QLabel::setPixmap);
+//    connect(m_camera, &QCameraCapture::frameUIReady, ui->imageView, &QLabel::setPixmap);
 
     m_camera->thread()->start();
 }
@@ -76,7 +77,8 @@ void MainWindow::closeCamera()
     disconnect(m_camera->thread(), &QThread::started, m_camera, &QCameraCapture::stream);
     disconnect(m_camera->thread(), &QThread::finished, m_camera, &QCameraCapture::deleteLater);
     disconnect(m_camera, &QCameraCapture::frameReady, m_model, &AppModel::processImage);
-    disconnect(m_camera, &QCameraCapture::frameUIReady, ui->imageView, &QLabel::setPixmap);
+    disconnect(m_model, &AppModel::imageReady, ui->imageView, &QLabel::setPixmap);
+//    disconnect(m_camera, &QCameraCapture::frameUIReady, ui->imageView, &QLabel::setPixmap);
 
     m_camera->stop();
     m_camera->thread()->quit();

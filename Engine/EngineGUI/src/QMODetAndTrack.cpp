@@ -555,6 +555,49 @@ std::vector<Object> QMODetAndTrack::detectframev2(cv::Mat frame)
     return detector->detectObjectv2(frame);
 }
 
+void QMODetAndTrack::detectframev3(cv::Mat frame)
+{
+    std::vector<Object> objects = detectframev2(frame);
+
+    // Draw object to image
+    for(auto const& object : objects)
+    {
+        const Object &d = object;
+        const float score = d.prob;
+        const float fLabel = d.label;
+
+        if(desiredDetect)
+        {
+            if (!(std::find(z_desiredObjects.begin(), z_desiredObjects.end(), fLabel) != z_desiredObjects.end()))
+            {
+                continue;
+            }
+        }
+
+        std::string label;
+        if (fLabel == 2.0){
+            label = "Bicycle";
+        }
+        else if (fLabel == 0.0){
+            label = "People";
+        }else{
+            label = std::to_string(static_cast<int>(fLabel));
+        }
+
+        if (score >= detectThreshold)
+        {
+            cv::Rect object(d.rec);
+            cv::rectangle(frame, object, cv::Scalar(0, 0, 255));
+            cv::putText(frame, label,
+                        cv::Point(object.tl().x - 5, object.tl().y - 5),
+                        cv::FONT_HERSHEY_COMPLEX,
+                        1, cv::Scalar(0, 0, 0));
+        }
+    }
+
+    emit imageResults(frame);
+}
+
 void QMODetAndTrack::DrawData(cv::Mat frame, int framesCounter, double fontScale)
 {
     for (const auto& track : m_tracker->tracks)

@@ -48,6 +48,8 @@ public:
 
     std::vector<std::vector<float>> detectframe(cv::Mat frame);
     std::vector<Object> detectframev2(cv::Mat frame);
+    void detectframev3(cv::Mat frame);
+
     void DrawData(cv::Mat frame, int framesCounter, double fontScale);
     void CounterUpdater(cv::Mat frame,
                         std::map<std::string, int> &countObjects_LefttoRight,

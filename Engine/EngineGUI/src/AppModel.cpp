@@ -6,6 +6,17 @@ AppModel::AppModel(QObject *parent)
 {
     readSettingFile("./Data/config/config.yaml");
     m_detAndTrack = new QMODetAndTrack();
+
+    m_detAndTrack->init();
+
+    connect(m_detAndTrack, &QMODetAndTrack::imageResults, this, [this](cv::Mat image) {
+        QPixmap img = QPixmap::fromImage(QImage((uchar*)image.data,
+                                                image.cols,
+                                                image.rows,
+                                                static_cast<int>(image.step),
+                                                QImage::Format_RGB888).rgbSwapped());
+        emit imageReady(img);
+    });
 }
 
 AppModel::~AppModel()
@@ -57,7 +68,20 @@ void AppModel::readSettingFile(QString path)
 
 void AppModel::processImage(cv::Mat frame)
 {
-
+    switch (m_state) {
+    case APP_STATE::NONE_STATE:
+        break;
+    case APP_STATE::COUNTING_STATE:
+        // m_detAndTrack->processv2(frame);
+        break;
+    case APP_STATE::DETECTING_STATE:
+        m_detAndTrack->detectframev3(frame);
+        break;
+    case APP_STATE::END_STATE:
+        break;
+    default:
+        break;
+    }
 }
 
 void AppModel::setState(AppModel::APP_STATE state)
