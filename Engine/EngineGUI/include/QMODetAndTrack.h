@@ -22,6 +22,8 @@
 #include "MO-Tracker/defines.h"
 #include "MO-Tracker/Ctracker.h"
 
+#include "AppConstants.h"
+
 class QMODetAndTrack : public QObject
 {
     Q_OBJECT
@@ -33,7 +35,7 @@ public:
     void Process();
 
     // ZED 2 camera
-    void init();
+    void init(sl::Camera zed);
     void processv2(cv::Mat image);
 
     void DrawTrack(cv::Mat frame,
@@ -57,6 +59,7 @@ public:
 
 signals:
     void counting(int number); 
+    void imageResults(cv::Mat image);
 
 private:
     bool saveVideo;
@@ -76,18 +79,19 @@ private:
     std::string desiredObjectsString;
 
     // Zed 2 Camera
-    std::vector<float> desireObjects;
+    std::vector<float> z_desiredObjects;
     cv::VideoWriter m_writer;
-    std::map<std::string, int>countObjects_LefttoRight;
-    std::map<std::string, int> countObjects_RighttoLeft;
-    double fontScale;
-    double tFrameModification;
-    double tDetection;
-    double tTracking;
-    double tCounting;
-    double tDTC;
-    double tStart;
-    std::ofstream csvFile;
+    std::map<std::string, int> z_countObjects_LefttoRight;
+    std::map<std::string, int> z_countObjects_RighttoLeft;
+    double z_fontScale;
+    double z_tFrameModification;
+    double z_tDetection;
+    double z_tTracking;
+    double z_tCounting;
+    double z_tDTC;
+    double z_tStart;
+    int z_frameCount;
+    std::ofstream z_csvFile;
 
     std::string modelFile;
     YoLoObjectDetection* detector;

@@ -322,17 +322,161 @@ void QMODetAndTrack::Process()
     csvFile.close();
 }
 
-void QMODetAndTrack::init() 
+void QMODetAndTrack::init(sl::Camera zed)
 {
-    // TODO
+    // Convert desired object to float
+    std::stringstream ss(desiredObjectsString);
+    while (ss.good()) {
+        std::string substring;
+        getline(ss, substring, ',');
+        z_desiredObjects.push_back(std::stof(substring));
+    }
+
+    // Get camera setting
+    auto camera_config = zed.getCameraInformation().camera_configuration;
+    sl::Resolution pc_resolution(std::min((int) camera_config.resolution.width, 1280), std::min((int) camera_config.resolution.height, 720));
+    auto camera_info = zed.getCameraInformation(pc_resolution).camera_configuration;
+
+    // Setting video output
+    auto frame_width = static_cast<int>(std::min((int) camera_config.resolution.width, 1280));
+    auto frame_height = static_cast<int>(std::min((int) camera_config.resolution.height, 720));
+    m_writer.open(outFile, cv::VideoWriter::fourcc('a', 'v', 'c', '1'), m_fps, cv::Size(frame_width, frame_height), true);
+
+    z_fontScale = CalculateRelativeSize(1920, 1080);
+
+    // Setting detector
+    detector = new YoLoObjectDetection(modelFile);
+
+    z_tFrameModification = 0;
+    z_tDetection = 0;
+    z_tTracking = 0;
+    z_tCounting = 0;
+    z_tDTC = 0;
+    z_frameCount = 0;
+//  z_tStart  = cv::getTickCount();
 }
 
 void QMODetAndTrack::processv2(cv::Mat image) 
 {
-    // TODO
+    double tStartFrameModification = cv::getTickCount();
+    // process single frame
+    if(image.empty())
+    {
+        CONSOLE << "frame empty";
+        return;
+    }
+
+    if(useCrop)
+    {
+        // TODO: Deep copy
+        cv::Mat copyFrame(image, cropRect);
+        image = copyFrame;
+    }
+
+    z_tFrameModification += cv::getTickCount() - tStartFrameModification;
+
+    // Get all the detected objects.
+    double tStartDetection = cv::getTickCount();
+    regions_t tmpRegions;
+    std::vector<Object> detections = detectframev2(image);
+
+    CONSOLE << "Number object in frame " << z_frameCount << "th: " << detections.size();
+
+    // Filter out all the objects based
+    // 1. Threshold
+    // 2. Desired object classe
+    for (auto const& detection : detections){
+
+        const Object &d = detection;
+        // Detection format: [score, label, xmin, ymin, xmax, ymax].
+        const float score = d.prob;
+        const float fLabel= d.label;
+
+        // std::cout << ">>> score >>> " << d[0] << std::endl;
+        // std::cout << ">>> label >>> " << d[1] << std::endl;
+        // std::cout << ">>> xmin >>> " << d[2] << std::endl;
+        // std::cout << ">>> ymin >>> " << d[3] << std::endl;
+        // std::cout << ">>> xmax >>> " << d[4] << std::endl;
+        // std::cout << ">>> ymax >>> " << d[5] << std::endl;
+        // std::cout << "===============================" << std::endl;
+
+        if(desiredDetect)
+        {
+            if (!(std::find(z_desiredObjects.begin(), z_desiredObjects.end(), fLabel) != z_desiredObjects.end()))
+            {
+                continue;
+            }
+        }
+
+        std::string label;
+        if (fLabel == 2.0){
+            label = "Bicycle";
+        }
+        else if (fLabel == 0.0){
+            label = "People";
+        }
+        else{
+            label = std::to_string(static_cast<int>(fLabel));
+        }
+
+        if (score >= detectThreshold) {
+
+            std::cout << label << std::endl;
+
+            cv::Rect object(d.rec);
+            tmpRegions.push_back(CRegion(object, label, score));
+        }
+    }
+
+    z_tDetection += cv::getTickCount() - tStartDetection;
+
+    double tStartTracking = cv::getTickCount();
+
+    // Update Tracker
+    cv::UMat clFrame;
+    clFrame = image.getUMat(cv::ACCESS_READ);
+    m_tracker->Update(tmpRegions, clFrame, m_fps);
+    z_tTracking += cv::getTickCount() - tStartTracking;
+
+    if(enableCount)
+    {
+        double tStartCounting = cv::getTickCount();
+        // Update Counter
+        CounterUpdater(image, z_countObjects_LefttoRight, z_countObjects_RighttoLeft);
+        z_tCounting += cv::getTickCount() - tStartCounting;
+
+        if(drawCount){
+            DrawCounter(image, z_fontScale, z_countObjects_LefttoRight, z_countObjects_RighttoLeft);
+        }
+
+    }
+
+    if(drawOther){
+        DrawData(image, z_frameCount, z_fontScale);
+    }
+
+    if (m_writer.isOpened() && saveVideo)
+    {
+        m_writer << image;
+    }
+
+    ++z_frameCount;
+
+    emit imageResults(image);
+
+//    cv::imshow("Result", image);
+
+//    if(cv::waitKey(1) == 27)
+//    {
+//        break;
+//    }
 }
 
-void QMODetAndTrack::DrawTrack(cv::Mat frame, int resizeCoeff, const CTrack &track, bool drawTrajectory, bool isStatic)
+void QMODetAndTrack::DrawTrack(cv::Mat frame,
+                               int resizeCoeff,
+                               const CTrack &track,
+                               bool drawTrajectory,
+                               bool isStatic)
 {
     auto ResizeRect = [&](const cv::Rect& r) -> cv::Rect
     {
@@ -392,7 +536,7 @@ double QMODetAndTrack::CalculateRelativeSize(int frame_width, int frame_height)
     return std::min(scalex, scaley);
 }
 
-std::vector<std::vector<float> > QMODetAndTrack::detectframe(cv::Mat frame)
+std::vector<std::vector<float>> QMODetAndTrack::detectframe(cv::Mat frame)
 {
     std::vector<cv::Rect> boxes = detector->detectObject(frame);
 
@@ -485,7 +629,8 @@ void QMODetAndTrack::CounterUpdater(cv::Mat frame,
                     }
                 }
                 // Update Counter from Right to Left
-            }else if (direction == 1)
+            }
+            else if (direction == 1)
             {
                 if(pt2_position_line2 <= 0  && pt1_position_line2 > 0)
                 {
