@@ -322,7 +322,7 @@ void QMODetAndTrack::Process()
     csvFile.close();
 }
 
-void QMODetAndTrack::init(sl::Camera zed)
+void QMODetAndTrack::init()
 {
     // Convert desired object to float
     std::stringstream ss(desiredObjectsString);
@@ -333,13 +333,11 @@ void QMODetAndTrack::init(sl::Camera zed)
     }
 
     // Get camera setting
-    auto camera_config = zed.getCameraInformation().camera_configuration;
-    sl::Resolution pc_resolution(std::min((int) camera_config.resolution.width, 1280), std::min((int) camera_config.resolution.height, 720));
-    auto camera_info = zed.getCameraInformation(pc_resolution).camera_configuration;
+    QSettings gui_setting("engine_gui", "MODetAndTrack");
 
     // Setting video output
-    auto frame_width = static_cast<int>(std::min((int) camera_config.resolution.width, 1280));
-    auto frame_height = static_cast<int>(std::min((int) camera_config.resolution.height, 720));
+    auto frame_width = static_cast<int>(std::min((int) gui_setting.value("output_width").toInt(), 1280));
+    auto frame_height = static_cast<int>(std::min((int) gui_setting.value("output_heigh").toInt(), 720));
     m_writer.open(outFile, cv::VideoWriter::fourcc('a', 'v', 'c', '1'), m_fps, cv::Size(frame_width, frame_height), true);
 
     z_fontScale = CalculateRelativeSize(1920, 1080);
@@ -724,6 +722,11 @@ void QMODetAndTrack::DrawCounter(cv::Mat frame,
     // cv::rectangle(frame, cv::Rect(cv::Point(10, 600 + 30 - labelSize_LR.height), cv::Size(labelSize_RL.width, labelSize_RL.height + baseLine)), cv::Scalar(255, 255, 255), CV_FILLED);
     // cv::putText(frame, counterLabel_L, cv::Point(10, 50 - 30), cv::FONT_HERSHEY_SIMPLEX, fontSize, cv::Scalar(0, 0, 0),1.5);
     // cv::putText(frame, counterLabel_R, cv::Point(10, 600 + 30), cv::FONT_HERSHEY_SIMPLEX, fontSize, cv::Scalar(0, 0, 0),1.5);
+}
+
+void QMODetAndTrack::resetCounter()
+{
+    // Reset counter
 }
 
 

@@ -17,6 +17,37 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->startButton, &QPushButton::clicked, this, &MainWindow::openCamera);
     connect(ui->stopButton, &QPushButton::clicked, this, &MainWindow::closeCamera);
+
+    connect(ui->detecCheck, &QCheckBox::clicked, this, [this] {
+        if(ui->detecCheck->isChecked() && !ui->detecCheck->isChecked()){
+            emit stateChanged(AppModel::APP_STATE::DETECTING_STATE);
+        }
+        else if (!ui->detecCheck->isChecked() && !ui->detecCheck->isChecked()){
+            emit stateChanged(AppModel::APP_STATE::NONE_STATE);
+        }
+        else {
+            ui->countCheck->setCheckState(Qt::Unchecked);
+            ui->detecCheck->setCheckState(Qt::Checked);
+            emit stateChanged(AppModel::APP_STATE::DETECTING_STATE);
+        }
+    });
+
+    connect(ui->countCheck, &QCheckBox::clicked, this, [this] {
+        if(ui->countCheck->isChecked() && !ui->detecCheck->isChecked()){
+            emit stateChanged(AppModel::APP_STATE::COUNTING_STATE);
+        }
+        else if (!ui->detecCheck->isChecked() && !ui->detecCheck->isChecked()){
+            emit stateChanged(AppModel::APP_STATE::NONE_STATE);
+        }
+        else {
+            ui->detecCheck->setCheckState(Qt::Unchecked);
+            ui->countCheck->setCheckState(Qt::Checked);
+            emit stateChanged(AppModel::APP_STATE::COUNTING_STATE);
+        }
+    });
+
+    connect(this, &MainWindow::stateChanged, m_model, &AppModel::setState);
+
 }
 
 MainWindow::~MainWindow()

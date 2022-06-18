@@ -18,6 +18,9 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+signals:
+    void stateChanged(AppModel::APP_STATE state);
+
 public slots:
     void openCamera();
     void closeCamera();

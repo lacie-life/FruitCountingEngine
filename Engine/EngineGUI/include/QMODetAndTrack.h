@@ -35,7 +35,7 @@ public:
     void Process();
 
     // ZED 2 camera
-    void init(sl::Camera zed);
+    void init();
     void processv2(cv::Mat image);
 
     void DrawTrack(cv::Mat frame,
@@ -56,6 +56,8 @@ public:
                      double fontScale,
                      std::map <std::string, int> &countObjects_LefttoRight,
                      std::map <std::string, int> &countObjects_RighttoLeft);
+
+    void resetCounter();
 
 signals:
     void counting(int number); 

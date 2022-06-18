@@ -24,6 +24,8 @@ void AppModel::readSettingFile(QString path)
 
     gui_setting.setValue("fps", "30");
     gui_setting.setValue("save_video", false);
+    gui_setting.setValue("output_width", 1280);
+    gui_setting.setValue("output_heigh", 720);
     gui_setting.setValue("count", true);
     gui_setting.setValue("draw_count", true);
     gui_setting.setValue("draw_other", false);
@@ -60,5 +62,6 @@ void AppModel::processImage(cv::Mat frame)
 
 void AppModel::setState(AppModel::APP_STATE state)
 {
+    CONSOLE << "App state: " << state;
     m_state = state;
 }
