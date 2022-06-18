@@ -85,32 +85,32 @@ target_link_libraries(EngineGUI
 
 # ========================= Test ======================================= #
 # ====================================================================== #
-#add_executable(bbtracker main.cpp)
+add_executable(bbtracker main.cpp)
 
-#target_link_libraries(bbtracker ${OpenCV_LIBS}
-#                                yolov5-detector
-#                                lk-tracker
-#                                mo-tracker
-#                                ${CUDA_CUDA_LIBRARY}
-#                                ${ZED_LIBRARIES})
+target_link_libraries(bbtracker ${OpenCV_LIBS}
+                                yolov5-detector
+                                lk-tracker
+                                mo-tracker
+                                ${CUDA_CUDA_LIBRARY}
+                                ${ZED_LIBRARIES})
 
-#add_executable(detector_test Test/detector_test.cpp)
+add_executable(detector_test Test/detector_test.cpp)
 
-#target_link_libraries(detector_test ${OpenCV_LIBS}
-#                                    yolov5-detector
-#                                    lk-tracker
-#                                    mo-tracker
-#                                    ${CUDA_CUDA_LIBRARY}
-#                                    ${ZED_LIBRARIES})
+target_link_libraries(detector_test ${OpenCV_LIBS}
+                                    yolov5-detector
+                                    lk-tracker
+                                    mo-tracker
+                                    ${CUDA_CUDA_LIBRARY}
+                                    ${ZED_LIBRARIES})
 
-#add_executable(mo_tracker_test Test/mo_tracker_test.cpp Test/zed2_pipeline.h)
+add_executable(mo_tracker_test Test/mo_tracker_test.cpp Test/zed2_pipeline.h)
 
-#target_link_libraries(mo_tracker_test ${OpenCV_LIBS}
-#                                      yolov5-detector
-#                                      lk-tracker
-#                                      mo-tracker
-#                                      ${CUDA_CUDA_LIBRARY}
-#                                      ${ZED_LIBRARIES})
+target_link_libraries(mo_tracker_test ${OpenCV_LIBS}
+                                      yolov5-detector
+                                      lk-tracker
+                                      mo-tracker
+                                      ${CUDA_CUDA_LIBRARY}
+                                      ${ZED_LIBRARIES})
 
 # ====================== Data =========================================== #
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/Data
