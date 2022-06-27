@@ -31,6 +31,8 @@ public:
     ~AppModel();
 
     void readSettingFile(QString path);
+    void processVideo();
+    void stopPocessVideo();
 
 signals:
     void imageReady(QPixmap pixmap);

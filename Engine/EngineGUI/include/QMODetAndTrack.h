@@ -60,12 +60,16 @@ public:
                      std::map <std::string, int> &countObjects_RighttoLeft);
 
     void resetCounter();
+    void stopProcess();
 
 signals:
     void counting(int number); 
     void imageResults(cv::Mat image);
 
 private:
+
+    bool isRuning;
+
     bool saveVideo;
     bool drawCount;
     bool drawOther;

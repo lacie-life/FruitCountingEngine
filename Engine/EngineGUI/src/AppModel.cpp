@@ -39,7 +39,7 @@ void AppModel::readSettingFile(QString path)
     gui_setting.setValue("output_heigh", 720);
     gui_setting.setValue("count", true);
     gui_setting.setValue("draw_count", true);
-    gui_setting.setValue("draw_other", false);
+    gui_setting.setValue("draw_other", true);
 
     gui_setting.setValue("direction", "2"); // 0 - left to right, 1 - right to left, 2 - both
     gui_setting.setValue("crop", "0");
@@ -88,4 +88,14 @@ void AppModel::setState(AppModel::APP_STATE state)
 {
     CONSOLE << "App state: " << state;
     m_state = state;
+}
+
+void AppModel::processVideo()
+{
+    m_detAndTrack->Process();
+}
+
+void AppModel::stopPocessVideo()
+{
+    m_detAndTrack->stopProcess();
 }

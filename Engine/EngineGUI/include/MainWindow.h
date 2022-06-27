@@ -27,6 +27,7 @@ public slots:
 
     void slot_countCheckbox();
     void slot_detectCheckbox();
+    void videoTest();
 
 private:
     Ui::MainWindow *ui;

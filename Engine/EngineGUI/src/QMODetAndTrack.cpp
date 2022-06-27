@@ -127,8 +127,10 @@ void QMODetAndTrack::Process()
     double tDTC = 0;
     double tStart  = cv::getTickCount();
 
+    isRuning = true;
+
     // Process one frame at a time
-    while (true) {
+    while (isRuning){
 
         double tStartFrameModification = cv::getTickCount();
 
@@ -256,7 +258,10 @@ void QMODetAndTrack::Process()
 
         ++frameCount;
 
-        // cv::imshow("Result", frame);
+        // WTFFFFFFFFFFFFFFFFFFFFF
+        cv::imshow("Result", frame);
+
+        emit imageResults(frame);
 
         if(cv::waitKey(1) == 27)
         {
@@ -771,6 +776,11 @@ void QMODetAndTrack::DrawCounter(cv::Mat frame,
 void QMODetAndTrack::resetCounter()
 {
     // Reset counter
+}
+
+void QMODetAndTrack::stopProcess()
+{
+    isRuning = false;
 }
 
 

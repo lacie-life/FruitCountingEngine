@@ -82,6 +82,32 @@
      <string>Stop</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="videoTestButton">
+    <property name="geometry">
+     <rect>
+      <x>640</x>
+      <y>300</y>
+      <width>89</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Test</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="stopVideoTest">
+    <property name="geometry">
+     <rect>
+      <x>640</x>
+      <y>340</y>
+      <width>89</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Video stop</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

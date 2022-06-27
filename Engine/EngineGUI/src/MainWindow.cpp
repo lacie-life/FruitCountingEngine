@@ -17,6 +17,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->startButton, &QPushButton::clicked, this, &MainWindow::openCamera);
     connect(ui->stopButton, &QPushButton::clicked, this, &MainWindow::closeCamera);
+    connect(ui->videoTestButton, &QPushButton::clicked, this, &MainWindow::videoTest);
+    connect(ui->stopVideoTest, &QPushButton::clicked, this, [this] {
+        m_model->stopPocessVideo();
+        disconnect(m_model, &AppModel::imageReady, ui->imageView, &QLabel::setPixmap);
+    });
 
     connect(ui->detecCheck, &QCheckBox::clicked, this, &MainWindow::slot_countCheckbox);
     connect(ui->countCheck, &QCheckBox::clicked, this, &MainWindow::slot_detectCheckbox);
@@ -119,4 +124,10 @@ void MainWindow::slot_detectCheckbox()
 
         emit stateChanged(AppModel::APP_STATE::COUNTING_STATE);
     }
+}
+
+void MainWindow::videoTest()
+{
+    connect(m_model, &AppModel::imageReady, ui->imageView, &QLabel::setPixmap);
+    m_model->processVideo();
 }
