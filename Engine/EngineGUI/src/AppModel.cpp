@@ -73,7 +73,7 @@ void AppModel::processImage(cv::Mat frame)
     case APP_STATE::NONE_STATE:
         break;
     case APP_STATE::COUNTING_STATE:
-        // m_detAndTrack->processv2(frame);
+        m_detAndTrack->processv2(frame);
         break;
     case APP_STATE::DETECTING_STATE:
         m_detAndTrack->detectframev3(frame);
