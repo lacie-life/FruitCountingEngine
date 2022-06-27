@@ -54,7 +54,7 @@ QMODetAndTrack::QMODetAndTrack(QObject *parent)
     settings.m_kalmanType = tracking::KalmanLinear;
     settings.m_filterGoal = tracking::FilterRect;
     settings.m_lostTrackType = tracking::TrackKCF;       // Use KCF tracker for collisions resolving
-    settings.m_matchType = tracking::MatchHungrian;
+    settings.m_matchType = tracking::MatchHungrian;      // Matching algorithm
     settings.m_dt = 0.3f;                                // Delta time for Kalman filter
     settings.m_accelNoiseMag = 0.1f;                     // Accel noise magnitude for Kalman filter
     settings.m_distThres = 100;                          // Distance threshold between region and object on two frames
@@ -593,6 +593,7 @@ void QMODetAndTrack::detectframev3(cv::Mat frame)
                         cv::FONT_HERSHEY_COMPLEX,
                         1, cv::Scalar(0, 0, 0));
         }
+        cv::imshow("Result", frame);
     }
 
     emit imageResults(frame);

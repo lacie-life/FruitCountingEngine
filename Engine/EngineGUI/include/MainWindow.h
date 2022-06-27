@@ -25,6 +25,9 @@ public slots:
     void openCamera();
     void closeCamera();
 
+    void slot_countCheckbox();
+    void slot_detectCheckbox();
+
 private:
     Ui::MainWindow *ui;
     AppModel* m_model;
