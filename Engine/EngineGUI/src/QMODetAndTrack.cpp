@@ -73,8 +73,6 @@ QMODetAndTrack::QMODetAndTrack(QObject *parent)
     m_colors.emplace_back(cv::Scalar(255, 127, 255));
     m_colors.emplace_back(cv::Scalar(127, 0, 255));
     m_colors.emplace_back(cv::Scalar(127, 0, 127));
-
-    connect(m_update, &QTimer::timeout, this, &QMODetAndTrack::sendImage);
 }
 
 QMODetAndTrack::~QMODetAndTrack()
@@ -260,10 +258,10 @@ void QMODetAndTrack::Process()
 
         ++frameCount;
 
-//        emit imageResults(frame);
-        m_lock.lock();
-        m_frame = frame.clone();
-        m_lock.unlock();
+        emit imageResults(frame);
+        // m_lock.lock();
+        // m_frame = frame.clone();
+        // m_lock.unlock();
     }
     if (cap.isOpened()) {
         cap.release();
@@ -354,6 +352,7 @@ void QMODetAndTrack::init()
     m_update.start(1000/m_fps);
 }
 
+// Model need to load after create Zed camera object 
 void QMODetAndTrack::loadModel()
 {
     // Setting detector
@@ -468,10 +467,10 @@ void QMODetAndTrack::processv2(cv::Mat image)
 
     ++z_frameCount;
 
-//    emit imageResults(image);
-    m_lock.lock();
-    m_frame = frame.clone();
-    m_lock.unlock();
+    emit imageResults(image);
+    // m_lock.lock();
+    // m_frame = frame.clone();
+    // m_lock.unlock();
 }
 
 void QMODetAndTrack::DrawTrack(cv::Mat frame,
@@ -602,10 +601,10 @@ void QMODetAndTrack::detectframev3(cv::Mat frame)
     }
 
 //    cv::imshow("Result", frame);
-//    emit imageResults(frame);
-    m_lock.lock();
-    m_frame = frame.clone();
-    m_lock.unlock();
+    emit imageResults(frame);
+    // m_lock.lock();
+    // m_frame = frame.clone();
+    // m_lock.unlock();
 }
 
 void QMODetAndTrack::DrawData(cv::Mat frame, int framesCounter, double fontScale)
@@ -787,10 +786,6 @@ void QMODetAndTrack::stopProcess()
     isRuning = false;
 }
 
-void QMODetAndTrack::sendImage()
-{
-    emit imageResults(m_frame);
-}
 
 
 

@@ -81,14 +81,14 @@ void MainWindow::closeCamera()
 
 void MainWindow::slot_detectCheckbox()
 {
-    if(ui->detecCheck->isChecked() && !ui->detecCheck->isChecked()){
+    if(ui->detecCheck->isChecked() && !ui->countCheck->isChecked()){
 
         disconnect(m_camera, &QCameraCapture::frameUIReady, ui->imageView, &QLabel::setPixmap);
         connect(m_model, &AppModel::imageReady, ui->imageView, &QLabel::setPixmap);
 
         emit stateChanged(AppModel::APP_STATE::DETECTING_STATE);
     }
-    else if (!ui->detecCheck->isChecked() && !ui->detecCheck->isChecked()){
+    else if (!ui->detecCheck->isChecked() && !ui->countCheck->isChecked()){
 
         disconnect(m_model, &AppModel::imageReady, ui->imageView, &QLabel::setPixmap);
         connect(m_camera, &QCameraCapture::frameUIReady, ui->imageView, &QLabel::setPixmap);
@@ -115,7 +115,7 @@ void MainWindow::slot_countCheckbox()
 
         emit stateChanged(AppModel::APP_STATE::COUNTING_STATE);
     }
-    else if (!ui->detecCheck->isChecked() && !ui->detecCheck->isChecked()){
+    else if (!ui->detecCheck->isChecked() && !ui->countCheck->isChecked()){
 
         disconnect(m_model, &AppModel::imageReady, ui->imageView, &QLabel::setPixmap);
         connect(m_camera, &QCameraCapture::frameUIReady, ui->imageView, &QLabel::setPixmap);

@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QPixmap>
+#include <QTimer>
 #include "QMODetAndTrack.h"
 
 #ifndef MACRO_DEFINE
@@ -40,10 +41,14 @@ signals:
 public slots:
     void processImage(cv::Mat frame);
     void setState(APP_STATE state);
+    void sendImage();
 
 public:
     APP_STATE m_state;
     QMODetAndTrack* m_detAndTrack;
+
+    QTimer m_update;
+    cv::Mat m_frame;
 
 };
 

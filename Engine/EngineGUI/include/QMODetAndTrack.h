@@ -71,10 +71,7 @@ public:
 signals:
     void counting(int number); 
     void imageResults(cv::Mat image);
-
-public slots:
-    void sendImage();
-
+    
 private:
     bool isRuning;
     bool saveVideo;
