@@ -6,6 +6,7 @@ AppModel::AppModel(QObject *parent)
       m_state(NONE_STATE)
 {
     readSettingFile("./Data/config/config.yaml");
+
     m_detAndTrack = new QMODetAndTrack();
 
     m_detAndTrack->init();

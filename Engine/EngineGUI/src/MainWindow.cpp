@@ -9,9 +9,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     qRegisterMetaType<cv::Mat>("cv::Mat");
 
-    m_model = new AppModel();
-
     m_camera = new QCameraCapture();
+
+    m_model = new AppModel();
 
     m_camera->moveToThread(new QThread(this));
 
@@ -23,11 +23,14 @@ MainWindow::MainWindow(QWidget *parent) :
         disconnect(m_model, &AppModel::imageReady, ui->imageView, &QLabel::setPixmap);
     });
 
-    connect(ui->detecCheck, &QCheckBox::clicked, this, &MainWindow::slot_countCheckbox);
-    connect(ui->countCheck, &QCheckBox::clicked, this, &MainWindow::slot_detectCheckbox);
+    connect(ui->detecCheck, &QCheckBox::clicked, this, &MainWindow::slot_detectCheckbox);
+    connect(ui->countCheck, &QCheckBox::clicked, this, &MainWindow::slot_countCheckbox);
 
     connect(this, &MainWindow::stateChanged, m_model, &AppModel::setState);
 
+    connect(this, &MainWindow::cameraOpened, this, [this] {
+       m_model->m_detAndTrack->loadModel();
+    });
 }
 
 MainWindow::~MainWindow()
@@ -53,6 +56,8 @@ void MainWindow::openCamera()
     }
 
     m_camera->thread()->start();
+
+    emit cameraOpened();
 }
 
 void MainWindow::closeCamera()
@@ -70,9 +75,11 @@ void MainWindow::closeCamera()
     m_camera->stop();
     m_camera->thread()->quit();
     m_camera->thread()->wait();
+
+    emit cameraClosed();
 }
 
-void MainWindow::slot_countCheckbox()
+void MainWindow::slot_detectCheckbox()
 {
     if(ui->detecCheck->isChecked() && !ui->detecCheck->isChecked()){
 
@@ -99,7 +106,7 @@ void MainWindow::slot_countCheckbox()
     }
 }
 
-void MainWindow::slot_detectCheckbox()
+void MainWindow::slot_countCheckbox()
 {
     if(ui->countCheck->isChecked() && !ui->detecCheck->isChecked()){
 

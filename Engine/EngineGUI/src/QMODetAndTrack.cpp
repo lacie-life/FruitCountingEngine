@@ -1,7 +1,8 @@
 #include "QMODetAndTrack.h"
 
 QMODetAndTrack::QMODetAndTrack(QObject *parent)
-    :  QObject{parent}
+    :  QObject{parent},
+     modelLoaded(false)
 {
     // Read setting
     QSettings gui_setting("engine_gui", "MODetAndTrack");
@@ -42,9 +43,6 @@ QMODetAndTrack::QMODetAndTrack(QObject *parent)
 
     modelFile = gui_setting.value("model").toString().toStdString();
 
-    // Create detector
-    detector = new YoLoObjectDetection(modelFile);
-
     // Initialize the tracker
     config_t config;
 
@@ -75,11 +73,13 @@ QMODetAndTrack::QMODetAndTrack(QObject *parent)
     m_colors.emplace_back(cv::Scalar(255, 127, 255));
     m_colors.emplace_back(cv::Scalar(127, 0, 255));
     m_colors.emplace_back(cv::Scalar(127, 0, 127));
+
+    connect(m_update, &QTimer::timeout, this, &QMODetAndTrack::sendImage);
 }
 
 QMODetAndTrack::~QMODetAndTrack()
 {
-
+    m_update.stop();
 }
 
 void QMODetAndTrack::Process()
@@ -128,6 +128,8 @@ void QMODetAndTrack::Process()
     double tStart  = cv::getTickCount();
 
     isRuning = true;
+
+    loadModel();
 
     // Process one frame at a time
     while (isRuning){
@@ -258,7 +260,10 @@ void QMODetAndTrack::Process()
 
         ++frameCount;
 
-        emit imageResults(frame);
+//        emit imageResults(frame);
+        m_lock.lock();
+        m_frame = frame.clone();
+        m_lock.unlock();
     }
     if (cap.isOpened()) {
         cap.release();
@@ -338,16 +343,23 @@ void QMODetAndTrack::init()
 
     z_fontScale = CalculateRelativeSize(1920, 1080);
 
-    // Setting detector
-    detector = new YoLoObjectDetection(modelFile);
-
     z_tFrameModification = 0;
     z_tDetection = 0;
     z_tTracking = 0;
     z_tCounting = 0;
     z_tDTC = 0;
     z_frameCount = 0;
-//  z_tStart  = cv::getTickCount();
+    //  z_tStart  = cv::getTickCount();
+
+    m_update.start(1000/m_fps);
+}
+
+void QMODetAndTrack::loadModel()
+{
+    // Setting detector
+    detector = new YoLoObjectDetection(modelFile);
+    CONSOLE << "Load model successfully";
+    modelLoaded = true;
 }
 
 void QMODetAndTrack::processv2(cv::Mat image) 
@@ -456,14 +468,10 @@ void QMODetAndTrack::processv2(cv::Mat image)
 
     ++z_frameCount;
 
-    emit imageResults(image);
-
-//    cv::imshow("Result", image);
-
-//    if(cv::waitKey(1) == 27)
-//    {
-//        break;
-//    }
+//    emit imageResults(image);
+    m_lock.lock();
+    m_frame = frame.clone();
+    m_lock.unlock();
 }
 
 void QMODetAndTrack::DrawTrack(cv::Mat frame,
@@ -555,6 +563,8 @@ void QMODetAndTrack::detectframev3(cv::Mat frame)
 {
     std::vector<Object> objects = detectframev2(frame);
 
+    CONSOLE << "Object number: " << objects.size();
+
     // Draw object to image
     for(auto const& object : objects)
     {
@@ -589,10 +599,13 @@ void QMODetAndTrack::detectframev3(cv::Mat frame)
                         cv::FONT_HERSHEY_COMPLEX,
                         1, cv::Scalar(0, 0, 0));
         }
-        cv::imshow("Result", frame);
     }
 
-    emit imageResults(frame);
+//    cv::imshow("Result", frame);
+//    emit imageResults(frame);
+    m_lock.lock();
+    m_frame = frame.clone();
+    m_lock.unlock();
 }
 
 void QMODetAndTrack::DrawData(cv::Mat frame, int framesCounter, double fontScale)
@@ -772,6 +785,11 @@ void QMODetAndTrack::resetCounter()
 void QMODetAndTrack::stopProcess()
 {
     isRuning = false;
+}
+
+void QMODetAndTrack::sendImage()
+{
+    emit imageResults(m_frame);
 }
 
 

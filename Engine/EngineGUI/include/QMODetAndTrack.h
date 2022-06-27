@@ -5,6 +5,8 @@
 #include <QString>
 #include <QStringList>
 #include <QSettings>
+#include <QTimer>
+#include <QMutex>
 
 #include <iostream>
 #include <dirent.h>
@@ -36,6 +38,7 @@ public:
 
     // ZED 2 camera
     void init();
+    void loadModel();
     void processv2(cv::Mat image);
 
     void DrawTrack(cv::Mat frame,
@@ -62,14 +65,18 @@ public:
     void resetCounter();
     void stopProcess();
 
+public:
+    bool modelLoaded;
+
 signals:
     void counting(int number); 
     void imageResults(cv::Mat image);
 
+public slots:
+    void sendImage();
+
 private:
-
     bool isRuning;
-
     bool saveVideo;
     bool drawCount;
     bool drawOther;
@@ -118,7 +125,10 @@ protected:
     float m_fps;
     bool enableCount;
     int direction;
+    QTimer m_update;
+    cv::Mat m_frame;
 
+    QMutex m_lock;
 };
 
 #endif // QMODETANDTRACK_H

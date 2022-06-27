@@ -20,6 +20,8 @@ public:
 
 signals:
     void stateChanged(AppModel::APP_STATE state);
+    void cameraOpened();
+    void cameraClosed();
 
 public slots:
     void openCamera();

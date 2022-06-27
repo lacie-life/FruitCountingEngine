@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.5.2, 2022-06-18T16:39:20. -->
+<!-- Written by QtCreator 4.5.2, 2022-06-27T14:40:30. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -342,7 +342,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.Arguments"></value>
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory.default">/home/jun/Github/FruitCountingEngine/build-Engine-Desktop-Default</value>
-    <value type="int" key="PE.EnvironmentAspect.Base">-1</value>
+    <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">detector_test</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
@@ -454,7 +454,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.Arguments"></value>
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory.default">/home/jun/Github/FruitCountingEngine/build-Engine-Desktop-Default</value>
-    <value type="int" key="PE.EnvironmentAspect.Base">-1</value>
+    <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">mo_tracker_test</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
@@ -510,7 +510,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.Arguments"></value>
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory.default">/home/jun/Github/FruitCountingEngine/build-Engine-Desktop-Default</value>
-    <value type="int" key="PE.EnvironmentAspect.Base">-1</value>
+    <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">bbtracker</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
