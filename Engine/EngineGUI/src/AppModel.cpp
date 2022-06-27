@@ -1,4 +1,5 @@
 #include "AppModel.h"
+#include "QCoreApplication"
 
 AppModel::AppModel(QObject *parent)
     : QObject{parent},
@@ -15,6 +16,7 @@ AppModel::AppModel(QObject *parent)
                                                 image.rows,
                                                 static_cast<int>(image.step),
                                                 QImage::Format_RGB888).rgbSwapped());
+        QCoreApplication::processEvents();
         emit imageReady(img);
     });
 }

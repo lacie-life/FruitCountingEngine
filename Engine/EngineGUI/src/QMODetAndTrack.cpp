@@ -258,16 +258,7 @@ void QMODetAndTrack::Process()
 
         ++frameCount;
 
-        // WTFFFFFFFFFFFFFFFFFFFFF
-        cv::imshow("Result", frame);
-
         emit imageResults(frame);
-
-        if(cv::waitKey(1) == 27)
-        {
-            break;
-        }
-
     }
     if (cap.isOpened()) {
         cap.release();
