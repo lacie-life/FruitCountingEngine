@@ -1,5 +1,4 @@
 #include "QCameraCapture.h"
-#include "AppConstants.h"
 
 #include <QDebug>
 #include <QString>
@@ -22,6 +21,7 @@ bool QCameraCapture::initCamera()
 
     sl::InitParameters init_params;
     init_params.camera_resolution = sl::RESOLUTION::HD720;
+    init_params.camera_fps = 30;
     init_params.depth_mode = sl::DEPTH_MODE::ULTRA;
     init_params.coordinate_units = sl::UNIT::METER;
 

@@ -12,7 +12,7 @@
 #include <opencv2/opencv.hpp>
 #include <algorithm>
 
-Q_DECLARE_METATYPE(cv::Mat)
+#include "AppConstants.h"
 
 class QCameraCapture : public QObject
 {

@@ -8,6 +8,7 @@
 #include <opencv2/opencv.hpp>
 #include "NvInfer.h"
 #include "yololayer.h"
+#include "../include/common.h"
 
 using namespace nvinfer1;
 
@@ -70,7 +71,7 @@ bool cmp(const Yolo::Detection& a, const Yolo::Detection& b) {
     return a.conf > b.conf;
 }
 
-void nms(std::vector<Yolo::Detection>& res, float *output, float conf_thresh, float nms_thresh = 0.5) {
+void nms(std::vector<Yolo::Detection>& res, float *output, float conf_thresh, float nms_thresh) {
     int det_size = sizeof(Yolo::Detection) / sizeof(float);
     std::map<float, std::vector<Yolo::Detection>> m;
     for (int i = 0; i < output[0] && i < Yolo::MAX_OUTPUT_BBOX_COUNT; i++) {

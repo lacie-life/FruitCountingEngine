@@ -1,5 +1,15 @@
 #include "yolov5_detection.h"
 
+static const int INPUT_H = Yolo::INPUT_H;
+static const int INPUT_W = Yolo::INPUT_W;
+static const int CLASS_NUM = Yolo::CLASS_NUM;
+static const int OUTPUT_SIZE = Yolo::MAX_OUTPUT_BBOX_COUNT * sizeof (Yolo::Detection) / sizeof (float) + 1; // we assume the yololayer outputs no more than MAX_OUTPUT_BBOX_COUNT boxes that conf >= 0.1
+const char* INPUT_BLOB_NAME = "data";
+const char* OUTPUT_BLOB_NAME = "prob";
+
+static float data[BATCH_SIZE * 3 * INPUT_H * INPUT_W];
+static float prob[BATCH_SIZE * OUTPUT_SIZE];
+
 YoLoObjectDetection::YoLoObjectDetection(const std::string _model_path)
 {   
     // deserialize the .engine and run inference

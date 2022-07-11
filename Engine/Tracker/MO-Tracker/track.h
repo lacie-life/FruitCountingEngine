@@ -6,7 +6,7 @@
 #include <array>
 
 #ifdef USE_OCV_KCF
-#include <opencv2/tracking.hpp>
+#include <opencv2/tracking/tracking.hpp>
 #endif
 
 #include "defines.h"
