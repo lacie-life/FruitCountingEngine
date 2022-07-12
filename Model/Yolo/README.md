@@ -11,7 +11,7 @@ python detect.py --source ../Road_Sign_Dataset/images/test/ --weights runs/train
 ```
 
 ```
-python path/to/export.py --weights yolov5s.pt --include torchscript onnx
+python yolov5/models/export.py --weights yolov5s.pt
 ```
 
 # ZED SDK - Object Detection

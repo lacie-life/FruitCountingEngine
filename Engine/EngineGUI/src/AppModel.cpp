@@ -104,7 +104,7 @@ void AppModel::stopPocessVideo()
 
 void AppModel::sendImage()
 {
-    QPixmap img = QPixmap::fromImage(QImage((uchar*)m_frame.data,
+    QPixmap img = QPixmap::fromImage(QImage((uchar*)m_fravme.data,
                                                 m_frame.cols,
                                                 m_frame.rows,
                                                 static_cast<int>(m_frame.step),
