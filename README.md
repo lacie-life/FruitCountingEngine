@@ -20,8 +20,8 @@ Building a camera module mounted on a UAV that collects data on images of dragon
 
 - [ ] Model dragon fruit detection (SSD-Mobilenet-v2/Yolov5)
   - [x] Train test
-  - [ ] Dataset (Finding)
-  - [ ] Evaluate model
+  - [x] Dataset (Find more)
+  - [x] Evaluate model
   - [ ] Improve model
 - [ ] Record data 
   - [x] Print 3D box 
