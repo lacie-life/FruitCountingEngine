@@ -28,10 +28,10 @@ from vision.ssd.config import squeezenet_ssd_config
 from vision.ssd.data_preprocessing import TrainAugmentation, TestTransform
 
 CLASSES = [
-    'background', 'snake fruit', 'dragon fruit', 'banana', 'pineapple'
+    'background', '0', '1'
 ]
 
-NUM_CLASSES = 5
+NUM_CLASSES = 3
 
 parser = argparse.ArgumentParser(
     description='Single Shot MultiBox Detector Training With PyTorch')
