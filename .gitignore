@@ -42,3 +42,4 @@ Counting-App/cmake-build-debug/
 Engine/build
 
 build-Engine-Desktop-Default/
+TensorRT-Engine/yolov5/build/
