@@ -64,7 +64,7 @@ void AppModel::readSettingFile(QString path)
     gui_setting.setValue("l2p2_x", 970);
     gui_setting.setValue("l2p2_y", 1080);
 
-    gui_setting.setValue("model", "./Data/model/yolo.engine");
+    gui_setting.setValue("model", "./Data/model/dragon_fruit.engine");
 }
 
 void AppModel::processImage(cv::Mat frame)
@@ -104,7 +104,7 @@ void AppModel::stopPocessVideo()
 
 void AppModel::sendImage()
 {
-    QPixmap img = QPixmap::fromImage(QImage((uchar*)m_fravme.data,
+    QPixmap img = QPixmap::fromImage(QImage((uchar*)m_frame.data,
                                                 m_frame.cols,
                                                 m_frame.rows,
                                                 static_cast<int>(m_frame.step),
