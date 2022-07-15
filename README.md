@@ -59,7 +59,9 @@ Building a camera module mounted on a UAV that collects data on images of dragon
 
 ## Usage
 
-### 1. Train model
+### 1. Install requierment
+
+### 2. Train model
 
 - Install YoLov5 requiements
 
@@ -78,7 +80,7 @@ pip install onnx
 
 - Export model to ONNX format by using [this file](https://github.com/lacie-life/FruitCountingEngine/blob/main/Model/Yolo/yolov5/models/export.py)
 
-### 2. Convert model to TensorRT Engine
+### 3. Convert model to TensorRT Engine
 
 ```
 cd TensorRT-Engine/yolov5
@@ -93,7 +95,7 @@ make
 ./build_engine --model YOLOV5_MODEL.onnx --output yolov5.engine
 ```
 
-### 3. Using GUI
+### 4. Using GUI
 
 Updating
 
