@@ -15,18 +15,18 @@ class CustomDataset(Dataset):
         self.height = height
         self.width = width
         self.classes = (
-                'background', 'snake fruit', 'dragon fruit', 'banana', 'pineapple'
+                'background', '0', '1'
                 )
 
         # get all the image paths in sorted order
-        self.image_paths = glob.glob(f"{self.dir_path}/images/*.png")
+        self.image_paths = glob.glob(f"{self.dir_path}/img/*.jpg")
         self.all_images = [image_path.split('/')[-1] for image_path in self.image_paths]
         self.all_images = sorted(self.all_images)
 
     def __getitem__(self, idx):
         # capture the image name and the full image path
         image_name = self.all_images[idx]
-        image_path = os.path.join(self.dir_path + "/images/" + image_name)
+        image_path = os.path.join(self.dir_path + "/img/" + image_name)
 
         # read the image
         image = cv2.imread(image_path)
@@ -41,7 +41,7 @@ class CustomDataset(Dataset):
 
         # capture the corresponding XML file for getting the annotations
         annot_filename = image_name[:-4] + '.xml'
-        annot_file_path = os.path.join(self.dir_path + "/annotations/" + annot_filename)
+        annot_file_path = os.path.join(self.dir_path + "/xml/" + annot_filename)
 
         boxes = []
         labels = []

@@ -11,10 +11,10 @@ TRAIN_DIR = 'data/train'
 VALID_DIR = 'data/test'
 # classes: 0 index is reserved for background
 CLASSES = [
-    'background', 'snake fruit', 'dragon fruit', 'banana', 'pineapple',
+    'background', '0', '1',
 ]
 
-NUM_CLASSES = 5
+NUM_CLASSES = 3
 
 # whether to visualize images after crearing the data loaders
 VISUALIZE_TRANSFORMED_IMAGES = False
