@@ -25,6 +25,7 @@ class VOCDataset:
             image_sets_file = self.root / "ImageSets/Main/trainval.txt"
             
         if not os.path.isfile(image_sets_file):
+            print("?")
             image_sets_default = self.root / "ImageSets/Main/default.txt"   # CVAT only saves default.txt
 
             if os.path.isfile(image_sets_default):
@@ -55,7 +56,7 @@ class VOCDataset:
 
         else:
             logging.info("No labels file, using default VOC classes.")
-            self.class_names = ('background', 'snake fruit', 'dragon fruit', 'banana', 'pineapple')
+            self.class_names = ('background', '0', '1')
 
 
         self.class_dict = {class_name: i for i, class_name in enumerate(self.class_names)}
@@ -114,12 +115,12 @@ class VOCDataset:
         return ids
 
     def _get_num_annotations(self, image_id):
-        annotation_file = self.root / f"Annotations/{image_id}.xml"
+        annotation_file = self.root / f"xml/{image_id}.xml"
         objects = ET.parse(annotation_file).findall("object")
         return len(objects)
         
     def _get_annotation(self, image_id):
-        annotation_file = self.root / f"Annotations/{image_id}.xml"
+        annotation_file = self.root / f"xml/{image_id}.xml"
         objects = ET.parse(annotation_file).findall("object")
         boxes = []
         labels = []
@@ -158,7 +159,7 @@ class VOCDataset:
         img_extensions = ('.jpg', '.JPG', '.jpeg', '.JPEG', '.png', '.PNG', '.bmp', '.BMP', '.tif', '.TIF', '.tiff', '.TIFF')
         
         for ext in img_extensions:
-            image_file = os.path.join(self.root, "JPEGImages/{:s}{:s}".format(image_id, ext))
+            image_file = os.path.join(self.root, "img/{:s}{:s}".format(image_id, ext))
             
             if os.path.exists(image_file):
                 return image_file

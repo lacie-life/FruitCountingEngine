@@ -63,6 +63,8 @@ Building a camera module mounted on a UAV that collects data on images of dragon
 
 ### 2. Train model
 
+#### 2.1. YOLOv5
+
 - Install YoLov5 requiements
 
 ```
@@ -79,6 +81,27 @@ pip install onnx
 - Train model by using [this file](https://github.com/lacie-life/FruitCountingEngine/blob/main/Model/Yolo/yolov5/train.py)
 
 - Export model to ONNX format by using [this file](https://github.com/lacie-life/FruitCountingEngine/blob/main/Model/Yolo/yolov5/models/export.py)
+
+#### 2.2. SSD-MobileNet
+
+- Install requirement
+
+```
+cd Model/ssd/
+pip install -r requirements.txt
+```
+
+- Using [this file](https://github.com/lacie-life/FruitCountingEngine/blob/main/Model/ssd/SSD_test.ipynb) for convert data to VOC format
+
+- Download pre-train net
+```
+wget -P models https://storage.googleapis.com/models-hao/mobilenet-v1-ssd-mp-0_675.pth
+```
+- Train model by using [this file](https://github.com/lacie-life/FruitCountingEngine/blob/main/Model/ssd/train_ssd.py)
+
+- Evaluation model by using [this file](https://github.com/lacie-life/FruitCountingEngine/blob/main/Model/ssd/eval_ssd.py)
+
+- Convert to ONNX by using [this file](https://github.com/lacie-life/FruitCountingEngine/blob/main/Model/ssd/onnx_export.py)
 
 ### 3. Convert model to TensorRT Engine
 
