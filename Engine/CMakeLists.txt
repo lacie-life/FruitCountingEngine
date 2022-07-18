@@ -21,7 +21,17 @@ set(CMAKE_AUTORCC ON)
 add_subdirectory(Detector)
 add_subdirectory(Tracker)
 
-find_package(OpenCV 4 REQUIRED)
+find_package(GLUT REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(OpenGL REQUIRED)
+
+include_directories(${GLEW_INCLUDE_DIRS})
+include_directories(${GLUT_INCLUDE_DIR})
+
+link_directories(${GLEW_LIBRARY_DIRS})
+link_directories(${GLUT_LIBRARY_DIRS})
+
+find_package(OpenCV 4.2 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 find_package(CUDA REQUIRED)
@@ -35,7 +45,7 @@ find_package(ZED 3 REQUIRED)
 include_directories(${ZED_INCLUDE_DIRS})
 link_directories(${ZED_LIBRARY_DIR})
 
-find_package(Qt5 COMPONENTS Core Widgets Sql SerialPort Svg REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets Sql SerialPort Svg OpenGL REQUIRED)
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND OR OPENMP_FOUND)
@@ -77,8 +87,12 @@ target_link_libraries(EngineGUI
     Qt5::Sql
     Qt5::SerialPort
     Qt5::Svg
+    Qt5::OpenGL
     ${OpenCV_LIBS}
     ${ZED_LIBS}
+    ${OPENGL_LIBRARIES}
+    ${GLUT_LIBRARY}
+    ${GLEW_LIBRARIES}
     yolov5-detector
     mo-tracker
     )
@@ -94,9 +108,9 @@ target_link_libraries(bbtracker ${OpenCV_LIBS}
                                 ${CUDA_CUDA_LIBRARY}
                                 ${ZED_LIBRARIES})
 
-add_executable(detector_test Test/detector_test.cpp)
+add_executable(yolov5_detector_test Test/detector_test.cpp)
 
-target_link_libraries(detector_test ${OpenCV_LIBS}
+target_link_libraries(yolov5_detector_test ${OpenCV_LIBS}
                                     yolov5-detector
                                     lk-tracker
                                     mo-tracker

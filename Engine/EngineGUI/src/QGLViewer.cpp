@@ -1,4 +1,4 @@
-#include "../include/GLViewer.h"
+#include "QGLViewer.h"
 #include <random>
 
 
@@ -38,26 +38,26 @@ void addVert(Simple3DObject &obj, float i_f, float limit, float height, sl::floa
     obj.addLine(p3, p4, clr);
 }
 
-GLViewer* currentInstance_ = nullptr;
+QGLViewer* currentInstance_ = nullptr;
 
-GLViewer::GLViewer() : available(false) {
+QGLViewer::QGLViewer() : available(false) {
     currentInstance_ = this;
     mouseButton_[0] = mouseButton_[1] = mouseButton_[2] = false;
     clearInputs();
     previousMouseMotion_[0] = previousMouseMotion_[1] = 0;
 }
 
-GLViewer::~GLViewer() {
+QGLViewer::~QGLViewer() {
 }
 
-void GLViewer::exit() {
+void QGLViewer::exit() {
     if (available) {
         available = false;
         pointCloud_.close();
     }
 }
 
-bool GLViewer::isAvailable() {
+bool QGLViewer::isAvailable() {
     glutMainLoopEvent();
     return available;
 }
@@ -105,7 +105,7 @@ void CloseFunc(void) {
         currentInstance_->exit();
 }
 
-void GLViewer::init(int argc, char **argv, sl::CameraParameters &param, bool isTrackingON) {
+void QGLViewer::init(int argc, char **argv, sl::CameraParameters &param, bool isTrackingON) {
     glutInit(&argc, argv);
     int wnd_w = glutGet(GLUT_SCREEN_WIDTH);
     int wnd_h = glutGet(GLUT_SCREEN_HEIGHT);
@@ -169,18 +169,18 @@ void GLViewer::init(int argc, char **argv, sl::CameraParameters &param, bool isT
     floor_grid.pushToGPU();
 
     // Map glut function on this class methods
-    glutDisplayFunc(GLViewer::drawCallback);
-    glutMouseFunc(GLViewer::mouseButtonCallback);
-    glutMotionFunc(GLViewer::mouseMotionCallback);
-    glutReshapeFunc(GLViewer::reshapeCallback);
-    glutKeyboardFunc(GLViewer::keyPressedCallback);
-    glutKeyboardUpFunc(GLViewer::keyReleasedCallback);
+    glutDisplayFunc(QGLViewer::drawCallback);
+    glutMouseFunc(QGLViewer::mouseButtonCallback);
+    glutMotionFunc(QGLViewer::mouseMotionCallback);
+    glutReshapeFunc(QGLViewer::reshapeCallback);
+    glutKeyboardFunc(QGLViewer::keyPressedCallback);
+    glutKeyboardUpFunc(QGLViewer::keyReleasedCallback);
     glutCloseFunc(CloseFunc);
 
     available = true;
 }
 
-void GLViewer::render() {
+void QGLViewer::render() {
     if (available) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(bckgrnd_clr.b, bckgrnd_clr.g, bckgrnd_clr.r, bckgrnd_clr.a);
@@ -191,7 +191,7 @@ void GLViewer::render() {
     }
 }
 
-void GLViewer::updateData(sl::Mat &matXYZRGBA, std::vector<sl::ObjectData> &objs, sl::Transform& pose) {
+void QGLViewer::updateData(sl::Mat &matXYZRGBA, std::vector<sl::ObjectData> &objs, sl::Transform& pose) {
     mtx.lock();
     pointCloud_.pushNewPC(matXYZRGBA);
     BBox_edges.clear();
@@ -249,7 +249,7 @@ void GLViewer::updateData(sl::Mat &matXYZRGBA, std::vector<sl::ObjectData> &objs
     mtx.unlock();
 }
 
-void GLViewer::createBboxRendering(std::vector<sl::float3> &bbox, sl::float4 bbox_clr) {
+void QGLViewer::createBboxRendering(std::vector<sl::float3> &bbox, sl::float4 bbox_clr) {
     // First create top and bottom full edges
     BBox_edges.addFullEdges(bbox, bbox_clr);
     // Add faded vertical edges
@@ -260,7 +260,7 @@ void GLViewer::createBboxRendering(std::vector<sl::float3> &bbox, sl::float4 bbo
     BBox_faces.addTopFace(bbox, bbox_clr);
 }
 
-void GLViewer::createIDRendering(sl::float3 & center, sl::float4 clr, unsigned int id) {
+void QGLViewer::createIDRendering(sl::float3 & center, sl::float4 clr, unsigned int id) {
     ObjectClassName tmp;
     tmp.name = "ID: " + std::to_string(id);
     tmp.color = clr;
@@ -268,7 +268,7 @@ void GLViewer::createIDRendering(sl::float3 & center, sl::float4 clr, unsigned i
     objectsName.push_back(tmp);
 }
 
-void GLViewer::update() {
+void QGLViewer::update() {
     if (keyStates_['q'] == KEY_STATE::UP || keyStates_['Q'] == KEY_STATE::UP || keyStates_[27] == KEY_STATE::UP) {
         currentInstance_->exit();
         return;
@@ -321,7 +321,7 @@ void GLViewer::update() {
     clearInputs();
 }
 
-void GLViewer::draw() {
+void QGLViewer::draw() {
     sl::Transform vpMatrix = camera_.getViewProjectionMatrix();
 
     glUseProgram(shaderLine.it.getProgramId());
@@ -360,7 +360,7 @@ sl::float2 compute3Dprojection(sl::float3 &pt, const sl::Transform &cam, sl::Res
     return proj2D;
 }
 
-void GLViewer::printText() {
+void QGLViewer::printText() {
     const sl::Transform vpMatrix = camera_.getViewProjectionMatrix() * cam_pose;
     sl::Resolution wnd_size(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
     for (auto it : objectsName) {
@@ -374,7 +374,7 @@ void GLViewer::printText() {
     }
 }
 
-void GLViewer::clearInputs() {
+void QGLViewer::clearInputs() {
     mouseMotion_[0] = mouseMotion_[1] = 0;
     mouseWheelPosition_ = 0;
     for (unsigned int i = 0; i < 256; ++i)
@@ -382,11 +382,11 @@ void GLViewer::clearInputs() {
             keyStates_[i] = KEY_STATE::FREE;
 }
 
-void GLViewer::drawCallback() {
+void QGLViewer::drawCallback() {
     currentInstance_->render();
 }
 
-void GLViewer::mouseButtonCallback(int button, int state, int x, int y) {
+void QGLViewer::mouseButtonCallback(int button, int state, int x, int y) {
     if (button < 5) {
         if (button < 3) {
             currentInstance_->mouseButton_[button] = state == GLUT_DOWN;
@@ -400,29 +400,29 @@ void GLViewer::mouseButtonCallback(int button, int state, int x, int y) {
     }
 }
 
-void GLViewer::mouseMotionCallback(int x, int y) {
+void QGLViewer::mouseMotionCallback(int x, int y) {
     currentInstance_->mouseMotion_[0] = x - currentInstance_->previousMouseMotion_[0];
     currentInstance_->mouseMotion_[1] = y - currentInstance_->previousMouseMotion_[1];
     currentInstance_->previousMouseMotion_[0] = x;
     currentInstance_->previousMouseMotion_[1] = y;
 }
 
-void GLViewer::reshapeCallback(int width, int height) {
+void QGLViewer::reshapeCallback(int width, int height) {
     glViewport(0, 0, width, height);
     float hfov = (180.0f / M_PI) * (2.0f * atan(width / (2.0f * 500)));
     float vfov = (180.0f / M_PI) * (2.0f * atan(height / (2.0f * 500)));
     currentInstance_->camera_.setProjection(hfov, vfov, currentInstance_->camera_.getZNear(), currentInstance_->camera_.getZFar());
 }
 
-void GLViewer::keyPressedCallback(unsigned char c, int x, int y) {
+void QGLViewer::keyPressedCallback(unsigned char c, int x, int y) {
     currentInstance_->keyStates_[c] = KEY_STATE::DOWN;
 }
 
-void GLViewer::keyReleasedCallback(unsigned char c, int x, int y) {
+void QGLViewer::keyReleasedCallback(unsigned char c, int x, int y) {
     currentInstance_->keyStates_[c] = KEY_STATE::UP;
 }
 
-void GLViewer::idle() {
+void QGLViewer::idle() {
     glutPostRedisplay();
 }
 

@@ -13,7 +13,6 @@
 #include "include/common.h"
 #include "include/utils.h"
 #include "include/calibrator.h"
-#include "include/GLViewer.h"
 
 #include <sl/Camera.hpp>
 
