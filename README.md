@@ -132,3 +132,6 @@ Updating
 - Real data collection
 - Accuracy
 
+## Ref
+
+https://blog.paperspace.com/train-yolov5-custom-data/
