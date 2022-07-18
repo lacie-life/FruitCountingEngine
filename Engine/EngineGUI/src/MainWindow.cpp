@@ -9,9 +9,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     qRegisterMetaType<cv::Mat>("cv::Mat");
 
-//    auto m_glViewer = new QGLViewer(this);
-//    this->setCentralWidget(m_glViewer);
-
     m_camera = new QCameraCapture();
 
     m_model = new AppModel();
