@@ -96,6 +96,11 @@ void AppModel::processVideo()
     m_detAndTrack->Process();
 }
 
+void AppModel::processCamera()
+{
+    m_detAndTrack->Process();
+}
+
 void AppModel::stopPocessVideo()
 {
     m_detAndTrack->stopProcess();

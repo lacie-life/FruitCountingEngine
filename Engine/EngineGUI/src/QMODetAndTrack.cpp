@@ -318,6 +318,12 @@ void QMODetAndTrack::Process()
     csvFile.close();
 }
 
+void QMODetAndTrack::ProcessZED()
+{
+    // ZED 2 Pipeline
+    // TODO: Add QGLViewer
+}
+
 void QMODetAndTrack::init()
 {
     // Convert desired object to float

@@ -35,6 +35,7 @@ public:
     ~QMODetAndTrack();
 
     void Process();
+    void ProcessZED();
 
     // ZED 2 camera
     void init();

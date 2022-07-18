@@ -136,5 +136,6 @@ void MainWindow::slot_countCheckbox()
 void MainWindow::videoTest()
 {
     connect(m_model, &AppModel::imageReady, ui->imageView, &QLabel::setPixmap);
-    m_model->processVideo();
+    // m_model->processVideo();
+    m_model->processCamera();
 }
