@@ -25,6 +25,7 @@
 #include "MO-Tracker/Ctracker.h"
 
 #include "AppConstants.h"
+#include "QGLViewer.h"
 
 class QMODetAndTrack : public QObject
 {

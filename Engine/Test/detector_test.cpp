@@ -356,7 +356,7 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    /// Opening the ZED camera before the model deserialization to avoid cuda context issue
+    // Opening the ZED camera before the model deserialization to avoid cuda context issue
     sl::Camera zed;
     sl::InitParameters init_parameters;
     init_parameters.camera_resolution = sl::RESOLUTION::HD1080;

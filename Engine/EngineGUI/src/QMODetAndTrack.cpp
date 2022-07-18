@@ -322,6 +322,97 @@ void QMODetAndTrack::ProcessZED()
 {
     // ZED 2 Pipeline
     // TODO: Add QGLViewer
+    // Prepossessing step. May be make a new function to do prepossessing (TODO)
+    // Converting desired object into float.
+    std::vector <float> desiredObjects;
+    std::stringstream ss(desiredObjectsString);
+    while( ss.good() )
+    {
+        std::string substring;
+        getline( ss, substring, ',' );
+        desiredObjects.push_back( std::stof(substring) );
+    }
+
+    // Opening the ZED camera before the model deserialization to avoid cuda context issue
+    sl::Camera zed;
+    sl::InitParameters init_parameters;
+    init_parameters.camera_resolution = sl::RESOLUTION::HD1080;
+    init_parameters.sdk_verbose = true;
+    init_parameters.depth_mode = sl::DEPTH_MODE::ULTRA;
+    init_parameters.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Y_UP; // OpenGL's coordinate system is right_handed
+
+    // Open the camera
+    auto returned_state = zed.open(init_parameters);
+    if (returned_state != sl::ERROR_CODE::SUCCESS) {
+        print("Camera Open", returned_state, "Exit program.");
+        return EXIT_FAILURE;
+    }
+
+    zed.enablePositionalTracking();
+    // Custom OD
+    sl::ObjectDetectionParameters detection_parameters;
+    detection_parameters.enable_tracking = true;
+    detection_parameters.enable_mask_output = false; // designed to give person pixel mask
+    detection_parameters.detection_model = sl::DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
+    returned_state = zed.enableObjectDetection(detection_parameters);
+    if (returned_state != sl::ERROR_CODE::SUCCESS) {
+        print("enableObjectDetection", returned_state, "\nExit program.");
+        zed.close();
+        return EXIT_FAILURE;
+    }
+    auto camera_config = zed.getCameraInformation().camera_configuration;
+    sl::Resolution pc_resolution(std::min((int) camera_config.resolution.width, 720), std::min((int) camera_config.resolution.height, 404));
+    auto camera_info = zed.getCameraInformation(pc_resolution).camera_configuration;
+
+    // Create OpenGL Viewer
+    QGLViewer viewer;
+    int argc;
+    char **argv;
+    viewer.init(argc, argv, camera_info.calibration_parameters.left_cam, true);
+    // ---------
+
+    sl::Mat left_sl, point_cloud;
+    cv::Mat left_cv_rgb;
+    sl::ObjectDetectionRuntimeParameters objectTracker_parameters_rt;
+    sl::Objects objects;
+    sl::Pose cam_w_pose;
+    cam_w_pose.pose_data.setIdentity();
+
+    int frameCount = 0;
+
+    // video output
+    cv::VideoWriter writer;
+    auto frame_width = static_cast<int>(std::min((int) camera_config.resolution.width, 1280));
+    auto frame_height = static_cast<int>(std::min((int) camera_config.resolution.height, 720));
+
+    writer.open(outFile, cv::VideoWriter::fourcc('a', 'v', 'c', '1'), m_fps, cv::Size(frame_width, frame_height), true);
+
+    std::cout << "Frame Infor: " << frame_width << " " << frame_height << std::endl;
+
+    std::map <string,  int> countObjects_LefttoRight;
+    std::map <string,  int> countObjects_RighttoLeft;
+    double fontScale = CalculateRelativeSize(1920, 1080);
+
+    double tFrameModification = 0;
+    double tDetection = 0;
+    double tTracking = 0;
+    double tCounting = 0;
+    double tDTC = 0;
+    double tStart  = cv::getTickCount();
+
+    detector = new YoLoObjectDetection(modelFile);
+
+    // Process one frame at a time
+    while (viewer.isAvalible())
+    {
+        double tStartFrameModification = cv::getTickCount();
+
+        if(zed.grab() == sl::ERROR_CODE::SUCCESS)
+        {
+            // TODO: processing
+        }
+
+    }
 }
 
 void QMODetAndTrack::init()
