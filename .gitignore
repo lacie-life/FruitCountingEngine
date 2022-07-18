@@ -33,6 +33,8 @@
 
 *.txt.user
 
+Engine/CMakeLists.txt.user
+
 TensorRT-Engine/build
 
 Counting-App/.idea/

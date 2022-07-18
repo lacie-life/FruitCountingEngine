@@ -1,5 +1,0 @@
-background
-snake fruit
-dragon fruit
-banana
-pineapple
