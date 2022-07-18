@@ -1,5 +1,6 @@
 #include "QMODetAndTrack.h"
 
+
 QMODetAndTrack::QMODetAndTrack(QObject *parent)
     :  QObject{parent},
      modelLoaded(false)
@@ -410,9 +411,144 @@ void QMODetAndTrack::ProcessZED()
         if(zed.grab() == sl::ERROR_CODE::SUCCESS)
         {
             // TODO: processing
+            zed.retrieveImage(left_sl, sl::VIEW::LEFT); 
+
+            // Preparing inference
+            cv::Mat left_cv_rgba = slMat2cvMat(left_sl);
+
+            cv::cvtColor(left_cv_rgba, left_cv_rgb, cv::COLOR_BGRA2BGR);
+                
+            if (left_cv_rgb.empty()) 
+            {
+                continue;
+            }
+
+            // Focus on interested area in the frame
+            if (useCrop)
+            {
+                cv::Mat copyFrame(frame, cropRect);
+                // Deep copy (TODO)
+                //copyFrame.copyTo(frame);
+                // Shallow copy
+                frame = copyFrame;
+            }
+            tFrameModification += cv::getTickCount() - tStartFrameModification;
+
+            // Get all the detected objects.
+            double tStartDetection = cv::getTickCount();
+            regions_t tmpRegions;
+            std::vector<Yolo::Detection> detections = detectframev3(frame);
+
+            std::cout << "Number object in frame " << frameCount << "th: " << detections.size() << std::endl;
+
+            // Filter out all the objects based
+            // 1. Threshold
+            // 2. Desired object classe
+            for (auto const& detection : detections){
+
+                const Object &d = detection;
+                // Detection format: [score, label, xmin, ymin, xmax, ymax].
+                const float score = d.prob;
+                const float fLabel= d.label;
+
+                if(desiredDetect)
+                {
+                    if (!(std::find(desiredObjects.begin(), desiredObjects.end(), fLabel) != desiredObjects.end()))
+                    {
+                        continue;
+                    }
+                }
+
+                std::string label;
+                if (fLabel == 2.0){
+                    label = "Bicycle";
+                }
+                else if (fLabel == 0.0){
+                    label = "People";
+                }else{
+                    label = std::to_string(static_cast<int>(fLabel));
+                }
+
+                if (score >= detectThreshold) {
+
+                    std::cout << label << std::endl;
+
+                    cv::Rect object(d.rec);
+                    tmpRegions.push_back(CRegion(object, label, score));
+                }
+            }
+            tDetection += cv::getTickCount() - tStartDetection;
+
+            double tStartTracking = cv::getTickCount();
+            // Update Tracker
+            cv::UMat clFrame;
+            clFrame = frame.getUMat(cv::ACCESS_READ);
+            m_tracker->Update(tmpRegions, clFrame, m_fps);
+            tTracking += cv::getTickCount() - tStartTracking;
+
+            if(enableCount)
+            {
+                double tStartCounting = cv::getTickCount();
+                // Update Counter
+                CounterUpdater(frame, countObjects_LefttoRight, countObjects_RighttoLeft);
+                tCounting += cv::getTickCount() - tStartCounting;
+
+                if(drawCount){
+                    DrawCounter(frame, fontScale, countObjects_LefttoRight, countObjects_RighttoLeft);
+                }
+
+            }
+
+            if(drawOther){
+                DrawData(frame, frameCount, fontScale);
+            }
+
+            if (writer.isOpened() && saveVideo)
+            {
+                writer << frame;
+            }
+
+            ++frameCount;
+
+            emit imageResults(frame);
+
+            // Preparing for ZED SDK ingesting
+            std::vector<sl::CustomBoxObjectData> objects_in;
+            for (auto &it : detections) {
+                sl::CustomBoxObjectData tmp;
+                cv::Rect r = get_rect(left_cv_rgb, it.bbox);
+                // Fill the detections into the correct format
+                tmp.unique_object_id = sl::generate_unique_id();
+                tmp.probability = it.conf;
+                tmp.label = (int) it.class_id;
+                tmp.bounding_box_2d = cvt(r);
+                tmp.is_grounded = ((int) it.class_id == 0); // Only the first class (person) is grounded, that is moving on the floor plane
+                // others are tracked in full 3D space
+                objects_in.push_back(tmp);
+            }
+            // Send the custom detected boxes to the ZED
+            zed.ingestCustomBoxObjects(objects_in);
+
+
+            // Displaying 'raw' objects
+            for (size_t j = 0; j < res.size(); j++) {
+                cv::Rect r = get_rect(left_cv_rgb, res[j].bbox);
+                cv::rectangle(left_cv_rgb, r, cv::Scalar(0x27, 0xC1, 0x36), 2);
+                cv::putText(left_cv_rgb, std::to_string((int) res[j].class_id), cv::Point(r.x, r.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2, cv::Scalar(0xFF, 0xFF, 0xFF), 2);
+            }
+            // cv::imshow("Objects", left_cv_rgb);
+            cv::waitKey(10);
+
+            // Retrieve the tracked objects, with 2D and 3D attributes
+            zed.retrieveObjects(objects, objectTracker_parameters_rt);
+            // GL Viewer
+            zed.retrieveMeasure(point_cloud, sl::MEASURE::XYZRGBA, sl::MEM::GPU, pc_resolution);
+            zed.getPosition(cam_w_pose, sl::REFERENCE_FRAME::WORLD);
+            viewer.updateData(point_cloud, objects.object_list, cam_w_pose.pose_data);
         }
 
     }
+    viewer.exit();
 }
 
 void QMODetAndTrack::init()

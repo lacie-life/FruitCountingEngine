@@ -57,6 +57,18 @@ YoLoObjectDetection::YoLoObjectDetection(const std::string _model_path)
     assert(BATCH_SIZE == 1); // This sample only support batch 1 for now
 }
 
+YoLoObjectDetection::~YoLoObjectDetection()
+{
+    // Release stream and buffers
+    cudaStreamDestroy(stream);
+    CUDA_CHECK(cudaFree(buffers[inputIndex]));
+    CUDA_CHECK(cudaFree(buffers[outputIndex]));
+    // Destroy the engine
+    context->destroy();
+    engine->destroy();
+    runtime->destroy();
+}
+
 std::vector<sl::uint2> YoLoObjectDetection::cvt(const cv::Rect &bbox_in)
 {
     std::vector<sl::uint2> bbox_out(4);
@@ -175,4 +187,32 @@ std::vector<Object> YoLoObjectDetection::detectObjectv2(const cv::Mat& _frame)
     }
 
     return objects;
+}
+
+std::vector<Yolo::Detection> YoLoObjectDetection::detectObjectv3(const cv::Mat& _frame)
+{
+    cv::Mat img = _frame.clone();
+
+    cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H); 
+
+    int i = 0;
+    int batch = 0;
+    for (int row = 0; row < INPUT_H; ++row) {
+        uchar* uc_pixel = pr_img.data + row * pr_img.step;
+        for (int col = 0; col < INPUT_W; ++col) {
+            data[batch * 3 * INPUT_H * INPUT_W + i] = (float) uc_pixel[2] / 255.0;
+            data[batch * 3 * INPUT_H * INPUT_W + i + INPUT_H * INPUT_W] = (float) uc_pixel[1] / 255.0;
+            data[batch * 3 * INPUT_H * INPUT_W + i + 2 * INPUT_H * INPUT_W] = (float) uc_pixel[0] / 255.0;
+            uc_pixel += 3;
+            ++i;
+        }
+    }
+
+    // Running inference
+    doInference(*context, stream, buffers, data, prob, BATCH_SIZE);
+    std::vector<std::vector < Yolo::Detection >> batch_res(BATCH_SIZE);
+    auto& res = batch_res[batch];
+    nms(res, &prob[batch * OUTPUT_SIZE], CONF_THRESH, NMS_THRESH);
+
+    return res;
 }
