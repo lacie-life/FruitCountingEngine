@@ -7,10 +7,10 @@
 
 int main( int argc, char** argv )
 {
-    cv::VideoCapture cap("/home/jun/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BBTracker/MOT17-11.mp4");
+    cv::VideoCapture cap("");
     cv::Mat frame;
 
-    YoLoObjectDetection det("/home/jun/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BBTracker/yolo.engine");
+    YoLoObjectDetection det("");
 
     while(true)
     {

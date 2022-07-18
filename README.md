@@ -106,21 +106,39 @@ wget -P models https://storage.googleapis.com/models-hao/mobilenet-v1-ssd-mp-0_6
 ### 3. Convert model to TensorRT Engine
 
 ```
-cd TensorRT-Engine/yolov5
+# gennerate .wst file
+cd Models/Yolo/yolov5
+python gen_wts.py <path to .pt file>
+
+cd TensorRT-Engine/yolov5/tensorrt_yolov5/
 
 # Copy your trained model to here
 
 mkdir build & cd build
-cmake ../yolov5
+cmake ..
 make
 
+# Copy .wts file generated to build folder
+
 # build engine
-./build_engine --model YOLOV5_MODEL.onnx --output yolov5.engine
+./yolov5_zed -s best.wts test-11.engine s
 ```
 
 ### 4. Using GUI
 
-Updating
+```
+# Copy .engine file to Engine/Data/model
+# Build GUI
+cd Engine
+mkdir build
+cd build
+cmake ..
+make
+
+# Run
+./EngineGUI
+```
+<Updating>
 
 ## Project report
 

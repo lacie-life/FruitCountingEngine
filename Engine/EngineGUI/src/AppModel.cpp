@@ -64,7 +64,7 @@ void AppModel::readSettingFile(QString path)
     gui_setting.setValue("l2p2_x", 970);
     gui_setting.setValue("l2p2_y", 1080);
 
-    gui_setting.setValue("model", "./Data/model/dragon_fruit.engine");
+    gui_setting.setValue("model", "./Data/model/test-11.engine");
 }
 
 void AppModel::processImage(cv::Mat frame)
