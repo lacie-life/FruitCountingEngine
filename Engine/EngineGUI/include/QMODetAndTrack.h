@@ -54,6 +54,7 @@ public:
     std::vector<std::vector<float>> detectframe(cv::Mat frame);
     std::vector<Object> detectframev2(cv::Mat frame);
     void detectframev3(cv::Mat frame);
+    std::vector<Yolo::Detection> detectframev4(cv::Mat frame);
 
     void DrawData(cv::Mat frame, int framesCounter, double fontScale);
     void CounterUpdater(cv::Mat frame,

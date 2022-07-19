@@ -61,8 +61,8 @@ YoLoObjectDetection::~YoLoObjectDetection()
 {
     // Release stream and buffers
     cudaStreamDestroy(stream);
-    CUDA_CHECK(cudaFree(buffers[inputIndex]));
-    CUDA_CHECK(cudaFree(buffers[outputIndex]));
+    CUDA_CHECK(cudaFree(buffers[engine->getBindingIndex(INPUT_BLOB_NAME)]));
+    CUDA_CHECK(cudaFree(buffers[engine->getBindingIndex(OUTPUT_BLOB_NAME)]));
     // Destroy the engine
     context->destroy();
     engine->destroy();

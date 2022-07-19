@@ -1,5 +1,14 @@
 #include "QMODetAndTrack.h"
+#include "include/common.h"
 
+std::vector<sl::uint2> cvt(const cv::Rect &bbox_in){
+    std::vector<sl::uint2> bbox_out(4);
+    bbox_out[0] = sl::uint2(bbox_in.x, bbox_in.y);
+    bbox_out[1] = sl::uint2(bbox_in.x + bbox_in.width, bbox_in.y);
+    bbox_out[2] = sl::uint2(bbox_in.x + bbox_in.width, bbox_in.y + bbox_in.height);
+    bbox_out[3] = sl::uint2(bbox_in.x, bbox_in.y + bbox_in.height);
+    return bbox_out;
+}
 
 QMODetAndTrack::QMODetAndTrack(QObject *parent)
     :  QObject{parent},
@@ -390,8 +399,8 @@ void QMODetAndTrack::ProcessZED()
 
     std::cout << "Frame Infor: " << frame_width << " " << frame_height << std::endl;
 
-    std::map <string,  int> countObjects_LefttoRight;
-    std::map <string,  int> countObjects_RighttoLeft;
+    std::map <std::string,  int> countObjects_LefttoRight;
+    std::map <std::string,  int> countObjects_RighttoLeft;
     double fontScale = CalculateRelativeSize(1920, 1080);
 
     double tFrameModification = 0;
@@ -404,7 +413,7 @@ void QMODetAndTrack::ProcessZED()
     detector = new YoLoObjectDetection(modelFile);
 
     // Process one frame at a time
-    while (viewer.isAvalible())
+    while (viewer.isAvailable())
     {
         double tStartFrameModification = cv::getTickCount();
 
@@ -426,18 +435,18 @@ void QMODetAndTrack::ProcessZED()
             // Focus on interested area in the frame
             if (useCrop)
             {
-                cv::Mat copyFrame(frame, cropRect);
+                cv::Mat copyFrame(left_cv_rgb, cropRect);
                 // Deep copy (TODO)
                 //copyFrame.copyTo(frame);
                 // Shallow copy
-                frame = copyFrame;
+                left_cv_rgb = copyFrame;
             }
             tFrameModification += cv::getTickCount() - tStartFrameModification;
 
             // Get all the detected objects.
             double tStartDetection = cv::getTickCount();
             regions_t tmpRegions;
-            std::vector<Yolo::Detection> detections = detectframev3(frame);
+            std::vector<Yolo::Detection> detections = detectframev4(left_cv_rgb);
 
             std::cout << "Number object in frame " << frameCount << "th: " << detections.size() << std::endl;
 
@@ -446,10 +455,10 @@ void QMODetAndTrack::ProcessZED()
             // 2. Desired object classe
             for (auto const& detection : detections){
 
-                const Object &d = detection;
+                const Yolo::Detection &d = detection;
                 // Detection format: [score, label, xmin, ymin, xmax, ymax].
-                const float score = d.prob;
-                const float fLabel= d.label;
+                const float score = d.conf;
+                const float fLabel= d.class_id;
 
                 if(desiredDetect)
                 {
@@ -473,7 +482,14 @@ void QMODetAndTrack::ProcessZED()
 
                     std::cout << label << std::endl;
 
-                    cv::Rect object(d.rec);
+                    float bbox[4];
+
+                    bbox[0] = d.bbox[0];
+                    bbox[1] = d.bbox[1];
+                    bbox[2] = d.bbox[2];
+                    bbox[3] = d.bbox[3];
+
+                    cv::Rect object = get_rect(left_cv_rgb, bbox);
                     tmpRegions.push_back(CRegion(object, label, score));
                 }
             }
@@ -482,35 +498,37 @@ void QMODetAndTrack::ProcessZED()
             double tStartTracking = cv::getTickCount();
             // Update Tracker
             cv::UMat clFrame;
-            clFrame = frame.getUMat(cv::ACCESS_READ);
+            clFrame = left_cv_rgb.getUMat(cv::ACCESS_READ);
             m_tracker->Update(tmpRegions, clFrame, m_fps);
             tTracking += cv::getTickCount() - tStartTracking;
+
+            cv::Mat frameDraw = left_cv_rgb.clone();
 
             if(enableCount)
             {
                 double tStartCounting = cv::getTickCount();
                 // Update Counter
-                CounterUpdater(frame, countObjects_LefttoRight, countObjects_RighttoLeft);
+                CounterUpdater(frameDraw, countObjects_LefttoRight, countObjects_RighttoLeft);
                 tCounting += cv::getTickCount() - tStartCounting;
 
                 if(drawCount){
-                    DrawCounter(frame, fontScale, countObjects_LefttoRight, countObjects_RighttoLeft);
+                    DrawCounter(frameDraw, fontScale, countObjects_LefttoRight, countObjects_RighttoLeft);
                 }
 
             }
 
             if(drawOther){
-                DrawData(frame, frameCount, fontScale);
+                DrawData(frameDraw, frameCount, fontScale);
             }
 
             if (writer.isOpened() && saveVideo)
             {
-                writer << frame;
+                writer << frameDraw;
             }
 
             ++frameCount;
 
-            emit imageResults(frame);
+            emit imageResults(frameDraw);
 
             // Preparing for ZED SDK ingesting
             std::vector<sl::CustomBoxObjectData> objects_in;
@@ -531,10 +549,10 @@ void QMODetAndTrack::ProcessZED()
 
 
             // Displaying 'raw' objects
-            for (size_t j = 0; j < res.size(); j++) {
-                cv::Rect r = get_rect(left_cv_rgb, res[j].bbox);
+            for (size_t j = 0; j < detections.size(); j++) {
+                cv::Rect r = get_rect(left_cv_rgb, detections[j].bbox);
                 cv::rectangle(left_cv_rgb, r, cv::Scalar(0x27, 0xC1, 0x36), 2);
-                cv::putText(left_cv_rgb, std::to_string((int) res[j].class_id), cv::Point(r.x, r.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2, cv::Scalar(0xFF, 0xFF, 0xFF), 2);
+                cv::putText(left_cv_rgb, std::to_string((int) detections[j].class_id), cv::Point(r.x, r.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2, cv::Scalar(0xFF, 0xFF, 0xFF), 2);
             }
             // cv::imshow("Objects", left_cv_rgb);
             cv::waitKey(10);
@@ -829,6 +847,11 @@ void QMODetAndTrack::detectframev3(cv::Mat frame)
 
 //    cv::imshow("Result", frame);
     emit imageResults(frame);
+}
+
+std::vector<Yolo::Detection> QMODetAndTrack::detectframev4(cv::Mat frame)
+{
+    return detector->detectObjectv3(frame);
 }
 
 void QMODetAndTrack::DrawData(cv::Mat frame, int framesCounter, double fontScale)

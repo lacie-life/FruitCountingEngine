@@ -48,14 +48,5 @@ static inline int read_files_in_dir(const char *p_dir_name, std::vector<std::str
     return 0;
 }
 
-std::vector<sl::uint2> cvt(const cv::Rect &bbox_in){
-    std::vector<sl::uint2> bbox_out(4);
-    bbox_out[0] = sl::uint2(bbox_in.x, bbox_in.y);
-    bbox_out[1] = sl::uint2(bbox_in.x + bbox_in.width, bbox_in.y);
-    bbox_out[2] = sl::uint2(bbox_in.x + bbox_in.width, bbox_in.y + bbox_in.height);
-    bbox_out[3] = sl::uint2(bbox_in.x, bbox_in.y + bbox_in.height);
-    return bbox_out;
-}
-
 #endif  // TRTX_YOLOV5_UTILS_H_
 

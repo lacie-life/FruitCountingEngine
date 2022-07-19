@@ -26,28 +26,12 @@ bool QCameraCapture::initCamera()
     init_params.coordinate_units = sl::UNIT::METER;
     init_params.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Y_UP; // OpenGL's coordinate system is right_handed
 
-
     // Open the camera
     sl::ERROR_CODE err = m_camera.open(init_params);
     if (err != sl::ERROR_CODE::SUCCESS) {
         CONSOLE << QString(toString(err));
         m_camera.close();
         return false; // Quit if an error occurred
-    }
-
-    m_camera.enablePositionalTracking();
-
-    cam_w_pose.pose_data.setIdentity();
-
-    sl::ObjectDetectionParameters detection_parameters;
-    detection_parameters.enable_tracking = true;
-    detection_parameters.enable_mask_output = false; // designed to give person pixel mask
-    detection_parameters.detection_model = sl::DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
-    returned_state = m_camera.enableObjectDetection(detection_parameters);
-    if (returned_state != sl::ERROR_CODE::SUCCESS) {
-        print("enableObjectDetection", returned_state, "\nExit program.");
-        m_camera.close();
-        return EXIT_FAILURE;
     }
 
     return true;

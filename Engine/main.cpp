@@ -4,9 +4,9 @@
 
 int main( int argc, char** argv )
 {
-    DetAndTrack dtObject("/home/jun/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BBTracker/yolo.engine");
+    DetAndTrack dtObject("");
 
-    cv::VideoCapture cap("/home/jun/Github/Master-Thesis/Task4-Counting-Dragon-Fruit/BBTracker/MOT17-11.mp4");
+    cv::VideoCapture cap("");
 
     cv::Mat frame;
     
