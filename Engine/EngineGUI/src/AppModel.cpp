@@ -98,7 +98,7 @@ void AppModel::processVideo()
 
 void AppModel::processCamera()
 {
-    m_detAndTrack->Process();
+    m_detAndTrack->ProcessZED();
 }
 
 void AppModel::stopPocessVideo()
@@ -116,7 +116,7 @@ void AppModel::sendImage()
                                                 QImage::Format_RGB888).rgbSwapped());
     // QCoreApplication::processEvents();
 
-    CONSOLE << "Sent image";
+    // CONSOLE << "Sent image";
 
     emit imageReady(img);
 }

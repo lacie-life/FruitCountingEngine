@@ -354,8 +354,7 @@ void QMODetAndTrack::ProcessZED()
     // Open the camera
     auto returned_state = zed.open(init_parameters);
     if (returned_state != sl::ERROR_CODE::SUCCESS) {
-        print("Camera Open", returned_state, "Exit program.");
-        return EXIT_FAILURE;
+        std::cout << "Camera Open" << returned_state << " \n Exit program. \n";
     }
 
     zed.enablePositionalTracking();
@@ -366,9 +365,8 @@ void QMODetAndTrack::ProcessZED()
     detection_parameters.detection_model = sl::DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
     returned_state = zed.enableObjectDetection(detection_parameters);
     if (returned_state != sl::ERROR_CODE::SUCCESS) {
-        print("enableObjectDetection", returned_state, "\nExit program.");
+        std::cout << "enableObjectDetection" << returned_state << " \n Exit program. \n";
         zed.close();
-        return EXIT_FAILURE;
     }
     auto camera_config = zed.getCameraInformation().camera_configuration;
     sl::Resolution pc_resolution(std::min((int) camera_config.resolution.width, 720), std::min((int) camera_config.resolution.height, 404));
