@@ -69,10 +69,14 @@ set(UI ${CMAKE_CURRENT_LIST_DIR}/EngineGUI/ui/mainwindow.ui)
 
 qt5_wrap_ui(UI_HEADERS ${UI})
 
+#list(APPEND RESOURCES  ${CMAKE_CURRENT_LIST_DIR}/EngineGUI/resources.qrc)
+#qt5_add_resources(RCC_SOURCES ${RESOURCES})
+
 add_executable(EngineGUI
     ${HEADERS}
     ${SOURCES}
     ${UI_HEADERS}
+#    ${RCC_SOURCES}
 )
 
 if (LINK_SHARED_ZED)

@@ -1,6 +1,8 @@
 #include "MainWindow.h"
 #include "ui_mainwindow.h"
 
+#include <QIcon>
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -8,6 +10,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     qRegisterMetaType<cv::Mat>("cv::Mat");
+
+    setWindowIcon(QIcon("./Data/icon.png"));
 
     m_camera = new QCameraCapture();
 

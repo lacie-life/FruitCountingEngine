@@ -231,7 +231,7 @@ public:
     ~QGLViewer();
     bool isAvailable();
 
-    void init(int argc, char **argv, sl::CameraParameters& param, bool isTrackingON);
+    void init(sl::CameraParameters& param, bool isTrackingON);
     void updateData(sl::Mat& matXYZRGBA, std::vector<sl::ObjectData>& objs, sl::Transform &cam_pose);
 
     void exit();

@@ -105,8 +105,7 @@ void CloseFunc(void) {
         currentInstance_->exit();
 }
 
-void QGLViewer::init(int argc, char **argv, sl::CameraParameters &param, bool isTrackingON) {
-    glutInit(&argc, argv);
+void QGLViewer::init(sl::CameraParameters &param, bool isTrackingON) {
     int wnd_w = glutGet(GLUT_SCREEN_WIDTH);
     int wnd_h = glutGet(GLUT_SCREEN_HEIGHT);
 

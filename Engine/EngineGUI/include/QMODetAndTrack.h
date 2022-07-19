@@ -7,6 +7,8 @@
 #include <QSettings>
 #include <QTimer>
 #include <QMutex>
+#include <QImage>
+#include <QPixmap>
 
 #include <iostream>
 #include <dirent.h>

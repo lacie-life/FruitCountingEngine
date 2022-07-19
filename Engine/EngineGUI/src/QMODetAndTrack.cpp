@@ -196,14 +196,6 @@ void QMODetAndTrack::Process()
             const float score = d.prob;
             const float fLabel= d.label;
 
-            // std::cout << ">>> score >>> " << d[0] << std::endl;
-            // std::cout << ">>> label >>> " << d[1] << std::endl;
-            // std::cout << ">>> xmin >>> " << d[2] << std::endl;
-            // std::cout << ">>> ymin >>> " << d[3] << std::endl;
-            // std::cout << ">>> xmax >>> " << d[4] << std::endl;
-            // std::cout << ">>> ymax >>> " << d[5] << std::endl;
-            // std::cout << "===============================" << std::endl;
-
             if(desiredDetect)
             {
                 if (!(std::find(desiredObjects.begin(), desiredObjects.end(), fLabel) != desiredObjects.end()))
@@ -223,11 +215,6 @@ void QMODetAndTrack::Process()
             }
 
             if (score >= detectThreshold) {
-
-                // auto xLeftBottom = static_cast<int>(d[2] * frame.cols);
-                // auto yLeftBottom = static_cast<int>(d[3] * frame.rows);
-                // auto xRightTop = static_cast<int>(d[4] * frame.cols);
-                // auto yRightTop = static_cast<int>(d[5] * frame.rows);
 
                 std::cout << label << std::endl;
 
@@ -374,9 +361,7 @@ void QMODetAndTrack::ProcessZED()
 
     // Create OpenGL Viewer
     QGLViewer viewer;
-    int argc;
-    char **argv;
-    viewer.init(argc, argv, camera_info.calibration_parameters.left_cam, true);
+    viewer.init(camera_info.calibration_parameters.left_cam, true);
     // ---------
 
     sl::Mat left_sl, point_cloud;
@@ -526,7 +511,7 @@ void QMODetAndTrack::ProcessZED()
 
             ++frameCount;
 
-            emit imageResults(frameDraw);
+//            cv::imshow("Object", frameDraw);
 
             // Preparing for ZED SDK ingesting
             std::vector<sl::CustomBoxObjectData> objects_in;
@@ -552,8 +537,12 @@ void QMODetAndTrack::ProcessZED()
                 cv::rectangle(left_cv_rgb, r, cv::Scalar(0x27, 0xC1, 0x36), 2);
                 cv::putText(left_cv_rgb, std::to_string((int) detections[j].class_id), cv::Point(r.x, r.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2, cv::Scalar(0xFF, 0xFF, 0xFF), 2);
             }
-            // cv::imshow("Objects", left_cv_rgb);
-            cv::waitKey(10);
+
+            cv::Mat img;
+            cv::resize(left_cv_rgb, img, cv::Size(960, 540));
+            cv::imshow("Objects", img);
+            emit imageResults(left_cv_rgb);
+            cv::waitKey(1);
 
             // Retrieve the tracked objects, with 2D and 3D attributes
             zed.retrieveObjects(objects, objectTracker_parameters_rt);
@@ -561,6 +550,12 @@ void QMODetAndTrack::ProcessZED()
             zed.retrieveMeasure(point_cloud, sl::MEASURE::XYZRGBA, sl::MEM::GPU, pc_resolution);
             zed.getPosition(cam_w_pose, sl::REFERENCE_FRAME::WORLD);
             viewer.updateData(point_cloud, objects.object_list, cam_w_pose.pose_data);
+
+            if(cv::waitKey(1) == 27)
+            {
+                viewer.exit();
+                break;
+            }
         }
 
     }
@@ -642,14 +637,6 @@ void QMODetAndTrack::processv2(cv::Mat image)
         // Detection format: [score, label, xmin, ymin, xmax, ymax].
         const float score = d.prob;
         const float fLabel= d.label;
-
-        // std::cout << ">>> score >>> " << d[0] << std::endl;
-        // std::cout << ">>> label >>> " << d[1] << std::endl;
-        // std::cout << ">>> xmin >>> " << d[2] << std::endl;
-        // std::cout << ">>> ymin >>> " << d[3] << std::endl;
-        // std::cout << ">>> xmax >>> " << d[4] << std::endl;
-        // std::cout << ">>> ymax >>> " << d[5] << std::endl;
-        // std::cout << "===============================" << std::endl;
 
         if(desiredDetect)
         {
