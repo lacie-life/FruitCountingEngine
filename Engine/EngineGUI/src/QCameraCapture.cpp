@@ -1,5 +1,4 @@
 #include "QCameraCapture.h"
-
 #include <QDebug>
 #include <QString>
 
@@ -22,8 +21,10 @@ bool QCameraCapture::initCamera()
     sl::InitParameters init_params;
     init_params.camera_resolution = sl::RESOLUTION::HD720;
     init_params.camera_fps = 30;
+    init_params.sdk_verbose = true;
     init_params.depth_mode = sl::DEPTH_MODE::ULTRA;
     init_params.coordinate_units = sl::UNIT::METER;
+    init_params.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Y_UP; // OpenGL's coordinate system is right_handed
 
     // Open the camera
     sl::ERROR_CODE err = m_camera.open(init_params);

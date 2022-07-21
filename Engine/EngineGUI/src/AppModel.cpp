@@ -13,11 +13,24 @@ AppModel::AppModel(QObject *parent)
 
     connect(m_detAndTrack, &QMODetAndTrack::imageResults, this, [this](cv::Mat image) {
         m_frame = image;
+
+        QPixmap img = QPixmap::fromImage(QImage((uchar*)m_frame.data,
+                                                m_frame.cols,
+                                                m_frame.rows,
+                                                static_cast<int>(m_frame.step),
+                                                QImage::Format_RGB888).rgbSwapped());
+        QCoreApplication::processEvents();
+
+        img.scaled(960, 540, Qt::KeepAspectRatio, Qt::FastTransformation);
+
+        // CONSOLE << "Sent image";
+
+        emit imageReady(img);
     });
 
-    connect(&m_update, &QTimer::timeout, this, &AppModel::sendImage);
+//     connect(&m_update, &QTimer::timeout, this, &AppModel::sendImage);
 
-    m_update.start(1000/30);
+//     m_update.start(1000/30);
 }
 
 AppModel::~AppModel()
@@ -96,6 +109,11 @@ void AppModel::processVideo()
     m_detAndTrack->Process();
 }
 
+void AppModel::processCamera()
+{
+    m_detAndTrack->ProcessZED();
+}
+
 void AppModel::stopPocessVideo()
 {
     m_detAndTrack->stopProcess();
@@ -109,9 +127,9 @@ void AppModel::sendImage()
                                                 m_frame.rows,
                                                 static_cast<int>(m_frame.step),
                                                 QImage::Format_RGB888).rgbSwapped());
-    // QCoreApplication::processEvents();
+    QCoreApplication::processEvents();
 
-    CONSOLE << "Sent image";
+    // CONSOLE << "Sent image";
 
     emit imageReady(img);
 }

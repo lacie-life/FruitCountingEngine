@@ -33,6 +33,7 @@ public:
 
     void readSettingFile(QString path);
     void processVideo();
+    void processCamera();
     void stopPocessVideo();
 
 signals:

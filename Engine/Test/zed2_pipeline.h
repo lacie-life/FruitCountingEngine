@@ -21,6 +21,7 @@
 
 #include <sl/Camera.hpp>
 
+#include "include/utils.hpp"
 #include "yolov5_detection.h"
 #include "MO-Tracker/defines.h"
 #include "MO-Tracker/Ctracker.h"

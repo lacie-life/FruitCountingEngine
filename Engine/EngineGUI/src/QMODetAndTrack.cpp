@@ -1,4 +1,14 @@
 #include "QMODetAndTrack.h"
+#include "include/common.h"
+
+std::vector<sl::uint2> cvt(const cv::Rect &bbox_in){
+    std::vector<sl::uint2> bbox_out(4);
+    bbox_out[0] = sl::uint2(bbox_in.x, bbox_in.y);
+    bbox_out[1] = sl::uint2(bbox_in.x + bbox_in.width, bbox_in.y);
+    bbox_out[2] = sl::uint2(bbox_in.x + bbox_in.width, bbox_in.y + bbox_in.height);
+    bbox_out[3] = sl::uint2(bbox_in.x, bbox_in.y + bbox_in.height);
+    return bbox_out;
+}
 
 QMODetAndTrack::QMODetAndTrack(QObject *parent)
     :  QObject{parent},
@@ -186,14 +196,6 @@ void QMODetAndTrack::Process()
             const float score = d.prob;
             const float fLabel= d.label;
 
-            // std::cout << ">>> score >>> " << d[0] << std::endl;
-            // std::cout << ">>> label >>> " << d[1] << std::endl;
-            // std::cout << ">>> xmin >>> " << d[2] << std::endl;
-            // std::cout << ">>> ymin >>> " << d[3] << std::endl;
-            // std::cout << ">>> xmax >>> " << d[4] << std::endl;
-            // std::cout << ">>> ymax >>> " << d[5] << std::endl;
-            // std::cout << "===============================" << std::endl;
-
             if(desiredDetect)
             {
                 if (!(std::find(desiredObjects.begin(), desiredObjects.end(), fLabel) != desiredObjects.end()))
@@ -213,11 +215,6 @@ void QMODetAndTrack::Process()
             }
 
             if (score >= detectThreshold) {
-
-                // auto xLeftBottom = static_cast<int>(d[2] * frame.cols);
-                // auto yLeftBottom = static_cast<int>(d[3] * frame.rows);
-                // auto xRightTop = static_cast<int>(d[4] * frame.cols);
-                // auto yRightTop = static_cast<int>(d[5] * frame.rows);
 
                 std::cout << label << std::endl;
 
@@ -318,6 +315,253 @@ void QMODetAndTrack::Process()
     csvFile.close();
 }
 
+void QMODetAndTrack::ProcessZED()
+{
+    // ZED 2 Pipeline
+    // TODO: Add QGLViewer
+    // Prepossessing step. May be make a new function to do prepossessing (TODO)
+    // Converting desired object into float.
+    std::vector <float> desiredObjects;
+    std::stringstream ss(desiredObjectsString);
+    while( ss.good() )
+    {
+        std::string substring;
+        getline( ss, substring, ',' );
+        desiredObjects.push_back( std::stof(substring) );
+    }
+
+    // Opening the ZED camera before the model deserialization to avoid cuda context issue
+    sl::Camera zed;
+    sl::InitParameters init_parameters;
+    init_parameters.camera_resolution = sl::RESOLUTION::HD1080;
+    init_parameters.sdk_verbose = true;
+    init_parameters.depth_mode = sl::DEPTH_MODE::ULTRA;
+    init_parameters.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Y_UP; // OpenGL's coordinate system is right_handed
+
+    // Open the camera
+    auto returned_state = zed.open(init_parameters);
+    if (returned_state != sl::ERROR_CODE::SUCCESS) {
+        std::cout << "Camera Open" << returned_state << " \n Exit program. \n";
+    }
+
+    zed.enablePositionalTracking();
+    // Custom OD
+    sl::ObjectDetectionParameters detection_parameters;
+    detection_parameters.enable_tracking = true;
+    detection_parameters.enable_mask_output = false; // designed to give person pixel mask
+    detection_parameters.detection_model = sl::DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
+    returned_state = zed.enableObjectDetection(detection_parameters);
+    if (returned_state != sl::ERROR_CODE::SUCCESS) {
+        std::cout << "enableObjectDetection" << returned_state << " \n Exit program. \n";
+        zed.close();
+    }
+    auto camera_config = zed.getCameraInformation().camera_configuration;
+    sl::Resolution pc_resolution(std::min((int) camera_config.resolution.width, 720), std::min((int) camera_config.resolution.height, 404));
+    auto camera_info = zed.getCameraInformation(pc_resolution).camera_configuration;
+
+    // Create OpenGL Viewer
+    QGLViewer viewer;
+    viewer.init(camera_info.calibration_parameters.left_cam, true);
+    // ---------
+
+    sl::Mat left_sl, point_cloud;
+    cv::Mat left_cv_rgb;
+    sl::ObjectDetectionRuntimeParameters objectTracker_parameters_rt;
+    sl::Objects objects;
+    sl::Pose cam_w_pose;
+    cam_w_pose.pose_data.setIdentity();
+
+    int frameCount = 0;
+
+    // video output
+    cv::VideoWriter writer;
+    auto frame_width = static_cast<int>(std::min((int) camera_config.resolution.width, 1280));
+    auto frame_height = static_cast<int>(std::min((int) camera_config.resolution.height, 720));
+
+    writer.open(outFile, cv::VideoWriter::fourcc('a', 'v', 'c', '1'), m_fps, cv::Size(frame_width, frame_height), true);
+
+    std::cout << "Frame Infor: " << frame_width << " " << frame_height << std::endl;
+
+    std::map <std::string,  int> countObjects_LefttoRight;
+    std::map <std::string,  int> countObjects_RighttoLeft;
+    double fontScale = CalculateRelativeSize(1920, 1080);
+
+    double tFrameModification = 0;
+    double tDetection = 0;
+    double tTracking = 0;
+    double tCounting = 0;
+    double tDTC = 0;
+    double tStart  = cv::getTickCount();
+
+    detector = new YoLoObjectDetection(modelFile);
+
+    // Process one frame at a time
+    while (viewer.isAvailable())
+    {
+        double tStartFrameModification = cv::getTickCount();
+
+        if(zed.grab() == sl::ERROR_CODE::SUCCESS)
+        {
+            // TODO: processing
+            zed.retrieveImage(left_sl, sl::VIEW::LEFT); 
+
+            // Preparing inference
+            cv::Mat left_cv_rgba = slMat2cvMat(left_sl);
+
+            cv::cvtColor(left_cv_rgba, left_cv_rgb, cv::COLOR_BGRA2BGR);
+                
+            if (left_cv_rgb.empty()) 
+            {
+                continue;
+            }
+
+            // Focus on interested area in the frame
+            if (useCrop)
+            {
+                cv::Mat copyFrame(left_cv_rgb, cropRect);
+                // Deep copy (TODO)
+                //copyFrame.copyTo(frame);
+                // Shallow copy
+                left_cv_rgb = copyFrame;
+            }
+            tFrameModification += cv::getTickCount() - tStartFrameModification;
+
+            // Get all the detected objects.
+            double tStartDetection = cv::getTickCount();
+            regions_t tmpRegions;
+            std::vector<Yolo::Detection> detections = detectframev4(left_cv_rgb);
+
+            std::cout << "Number object in frame " << frameCount << "th: " << detections.size() << std::endl;
+
+            // Filter out all the objects based
+            // 1. Threshold
+            // 2. Desired object classe
+            for (auto const& detection : detections){
+
+                const Yolo::Detection &d = detection;
+                // Detection format: [score, label, xmin, ymin, xmax, ymax].
+                const float score = d.conf;
+                const float fLabel= d.class_id;
+
+                if(desiredDetect)
+                {
+                    if (!(std::find(desiredObjects.begin(), desiredObjects.end(), fLabel) != desiredObjects.end()))
+                    {
+                        continue;
+                    }
+                }
+
+                std::string label;
+                if (fLabel == 2.0){
+                    label = "Bicycle";
+                }
+                else if (fLabel == 0.0){
+                    label = "People";
+                }else{
+                    label = std::to_string(static_cast<int>(fLabel));
+                }
+
+                if (score >= detectThreshold) {
+
+                    std::cout << label << std::endl;
+
+                    float bbox[4];
+
+                    bbox[0] = d.bbox[0];
+                    bbox[1] = d.bbox[1];
+                    bbox[2] = d.bbox[2];
+                    bbox[3] = d.bbox[3];
+
+                    cv::Rect object = get_rect(left_cv_rgb, bbox);
+                    tmpRegions.push_back(CRegion(object, label, score));
+                }
+            }
+            tDetection += cv::getTickCount() - tStartDetection;
+
+            double tStartTracking = cv::getTickCount();
+            // Update Tracker
+            cv::UMat clFrame;
+            clFrame = left_cv_rgb.getUMat(cv::ACCESS_READ);
+            m_tracker->Update(tmpRegions, clFrame, m_fps);
+            tTracking += cv::getTickCount() - tStartTracking;
+
+            cv::Mat frameDraw = left_cv_rgb.clone();
+
+            if(enableCount)
+            {
+                double tStartCounting = cv::getTickCount();
+                // Update Counter
+                CounterUpdater(frameDraw, countObjects_LefttoRight, countObjects_RighttoLeft);
+                tCounting += cv::getTickCount() - tStartCounting;
+
+                if(drawCount){
+                    DrawCounter(frameDraw, fontScale, countObjects_LefttoRight, countObjects_RighttoLeft);
+                }
+
+            }
+
+            if(drawOther){
+                DrawData(frameDraw, frameCount, fontScale);
+            }
+
+            if (writer.isOpened() && saveVideo)
+            {
+                writer << frameDraw;
+            }
+
+            ++frameCount;
+
+//            cv::imshow("Object", frameDraw);
+
+            // Preparing for ZED SDK ingesting
+            std::vector<sl::CustomBoxObjectData> objects_in;
+            for (auto &it : detections) {
+                sl::CustomBoxObjectData tmp;
+                cv::Rect r = get_rect(left_cv_rgb, it.bbox);
+                // Fill the detections into the correct format
+                tmp.unique_object_id = sl::generate_unique_id();
+                tmp.probability = it.conf;
+                tmp.label = (int) it.class_id;
+                tmp.bounding_box_2d = cvt(r);
+                tmp.is_grounded = ((int) it.class_id == 0); // Only the first class (person) is grounded, that is moving on the floor plane
+                // others are tracked in full 3D space
+                objects_in.push_back(tmp);
+            }
+            // Send the custom detected boxes to the ZED
+            zed.ingestCustomBoxObjects(objects_in);
+
+
+            // Displaying 'raw' objects
+            for (size_t j = 0; j < detections.size(); j++) {
+                cv::Rect r = get_rect(left_cv_rgb, detections[j].bbox);
+                cv::rectangle(left_cv_rgb, r, cv::Scalar(0x27, 0xC1, 0x36), 2);
+                cv::putText(left_cv_rgb, std::to_string((int) detections[j].class_id), cv::Point(r.x, r.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2, cv::Scalar(0xFF, 0xFF, 0xFF), 2);
+            }
+
+            cv::Mat img;
+            cv::resize(left_cv_rgb, img, cv::Size(960, 540));
+            cv::imshow("Objects", img);
+            emit imageResults(left_cv_rgb);
+            cv::waitKey(1);
+
+            // Retrieve the tracked objects, with 2D and 3D attributes
+            zed.retrieveObjects(objects, objectTracker_parameters_rt);
+            // GL Viewer
+            zed.retrieveMeasure(point_cloud, sl::MEASURE::XYZRGBA, sl::MEM::GPU, pc_resolution);
+            zed.getPosition(cam_w_pose, sl::REFERENCE_FRAME::WORLD);
+            viewer.updateData(point_cloud, objects.object_list, cam_w_pose.pose_data);
+
+            if(cv::waitKey(1) == 27)
+            {
+                viewer.exit();
+                break;
+            }
+        }
+
+    }
+    viewer.exit();
+}
+
 void QMODetAndTrack::init()
 {
     // Convert desired object to float
@@ -393,14 +637,6 @@ void QMODetAndTrack::processv2(cv::Mat image)
         // Detection format: [score, label, xmin, ymin, xmax, ymax].
         const float score = d.prob;
         const float fLabel= d.label;
-
-        // std::cout << ">>> score >>> " << d[0] << std::endl;
-        // std::cout << ">>> label >>> " << d[1] << std::endl;
-        // std::cout << ">>> xmin >>> " << d[2] << std::endl;
-        // std::cout << ">>> ymin >>> " << d[3] << std::endl;
-        // std::cout << ">>> xmax >>> " << d[4] << std::endl;
-        // std::cout << ">>> ymax >>> " << d[5] << std::endl;
-        // std::cout << "===============================" << std::endl;
 
         if(desiredDetect)
         {
@@ -596,6 +832,11 @@ void QMODetAndTrack::detectframev3(cv::Mat frame)
 
 //    cv::imshow("Result", frame);
     emit imageResults(frame);
+}
+
+std::vector<Yolo::Detection> QMODetAndTrack::detectframev4(cv::Mat frame)
+{
+    return detector->detectObjectv3(frame);
 }
 
 void QMODetAndTrack::DrawData(cv::Mat frame, int framesCounter, double fontScale)

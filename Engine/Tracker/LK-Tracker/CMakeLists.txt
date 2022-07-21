@@ -9,7 +9,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 find_package(vpi REQUIRED)
-find_package(OpenCV 4 REQUIRED)
+find_package(OpenCV 4.2 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 find_package(Threads REQUIRED)
 add_definitions(-std=c++11)

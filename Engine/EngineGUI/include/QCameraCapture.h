@@ -13,6 +13,8 @@
 #include <algorithm>
 
 #include "AppConstants.h"
+#include "QGLViewer.h"
+#include "yolov5_detection.h"
 
 class QCameraCapture : public QObject
 {
@@ -23,6 +25,7 @@ public:
     ~QCameraCapture();
 
     bool initCamera();
+    sl::Camera getCamera();
 
 signals:
     void frameReady(cv::Mat frame);

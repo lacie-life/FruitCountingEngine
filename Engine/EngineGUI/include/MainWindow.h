@@ -5,6 +5,7 @@
 #include <QThread>
 #include "AppModel.h"
 #include "QCameraCapture.h"
+#include "QGLViewer.h"
 
 namespace Ui {
 class MainWindow;
@@ -35,6 +36,7 @@ private:
     Ui::MainWindow *ui;
     AppModel* m_model;
     QCameraCapture* m_camera;
+    QGLViewer* m_glViewer;
 };
 
 #endif // MAINWINDOW_H
