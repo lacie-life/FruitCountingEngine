@@ -45,3 +45,6 @@ Engine/build
 
 build-Engine-Desktop-Default/
 TensorRT-Engine/yolov5/build/
+
+Model/Yolo/images/
+Model/Yolo/labels/
