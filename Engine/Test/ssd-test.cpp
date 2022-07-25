@@ -1,4 +1,4 @@
-#include "object_detection.h"
+#include "ssd_detection.h"
 #include <opencv2/highgui.hpp>
 #include <opencv2/video.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -10,7 +10,7 @@ int main( int argc, char** argv )
     cv::VideoCapture cap("/home/lingkang/Videos/MOT17-11.mp4");
     cv::Mat frame;
 
-    ObjectDetection det("../../pedestrian_detection/");
+    SSDObjectDetection det("../../pedestrian_detection/");
 
     while(true)
     {
