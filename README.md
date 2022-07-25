@@ -153,3 +153,5 @@ make
 ## Ref
 
 https://blog.paperspace.com/train-yolov5-custom-data/
+  
+https://github.com/jkjung-avt/tensorrt_demos
