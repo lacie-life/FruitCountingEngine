@@ -540,7 +540,7 @@ void QMODetAndTrack::ProcessZED()
 
             cv::Mat img;
             cv::resize(left_cv_rgb, img, cv::Size(960, 540));
-            cv::imshow("Objects", img);
+            // cv::imshow("Objects", img);
             emit imageResults(left_cv_rgb);
             cv::waitKey(1);
 

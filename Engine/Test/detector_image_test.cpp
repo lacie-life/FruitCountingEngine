@@ -31,7 +31,7 @@ int main( int argc, char** argv )
 
     cv::Mat frame;
 
-    YoLoObjectDetection det("/home/jun/Github/FruitCountingEngine/Engine/build/Data/model/test-11.engine");
+    YoLoObjectDetection det(argv[2]);
 
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
@@ -43,11 +43,14 @@ int main( int argc, char** argv )
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
         std::chrono::duration<double> time_used = std::chrono::duration_cast<std::chrono::duration<double>>(t2-t1);
         std::cout<<"Time: " << time_used.count() << "seconds" << std::endl;
+        int fps = 1.0/time_used.count();
+        std::string jetson_fps = "Jetson AGX FPS: " + std::to_string(fps);
 
         for(auto object:objects)
         {
             cv::rectangle(frame, object.rec, cv::Scalar(0, 255, 0), 2, 1);
             cv::putText(frame, std::to_string((int) object.label), cv::Point(object.rec.x, object.rec.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2, cv::Scalar(255, 0, 0), 2);
+            cv::putText(frame, jetson_fps, cv::Point(11,80), cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
         }
 
         cv::imshow("detection", frame);
