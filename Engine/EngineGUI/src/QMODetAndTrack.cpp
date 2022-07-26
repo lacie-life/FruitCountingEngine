@@ -195,6 +195,8 @@ void QMODetAndTrack::Process()
             // Detection format: [score, label, xmin, ymin, xmax, ymax].
             const float score = d.prob;
             const float fLabel= d.label;
+            
+            std::cout << fLabel << std::endl;
 
             if(desiredDetect)
             {
@@ -453,10 +455,10 @@ void QMODetAndTrack::ProcessZED()
 
                 std::string label;
                 if (fLabel == 2.0){
-                    label = "Bicycle";
+                    label = "Ripe";
                 }
                 else if (fLabel == 0.0){
-                    label = "People";
+                    label = "Upripe";
                 }else{
                     label = std::to_string(static_cast<int>(fLabel));
                 }
@@ -512,6 +514,8 @@ void QMODetAndTrack::ProcessZED()
             ++frameCount;
 
 //            cv::imshow("Object", frameDraw);
+            cv::resize(frameDraw, frameDraw, cv::Size(960, 540));
+            emit imageResults(frameDraw);
 
             // Preparing for ZED SDK ingesting
             std::vector<sl::CustomBoxObjectData> objects_in;
@@ -541,7 +545,7 @@ void QMODetAndTrack::ProcessZED()
             cv::Mat img;
             cv::resize(left_cv_rgb, img, cv::Size(960, 540));
             // cv::imshow("Objects", img);
-            emit imageResults(left_cv_rgb);
+            // emit imageResults(img);
             cv::waitKey(1);
 
             // Retrieve the tracked objects, with 2D and 3D attributes
