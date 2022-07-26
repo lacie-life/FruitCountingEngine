@@ -67,8 +67,8 @@ void AppModel::readSettingFile(QString path)
     gui_setting.setValue("crop_y", "1100");
 
     gui_setting.setValue("threshold", "0.5");
-    gui_setting.setValue("desired_detect", "1");
-    gui_setting.setValue("desired_objects", "0");
+    gui_setting.setValue("desired_detect", "2");
+    gui_setting.setValue("desired_objects", "1");
 
     gui_setting.setValue("l1p1_x", 950);
     gui_setting.setValue("l1p1_y", 0);
@@ -79,7 +79,7 @@ void AppModel::readSettingFile(QString path)
     gui_setting.setValue("l2p2_x", 970);
     gui_setting.setValue("l2p2_y", 1080);
 
-    gui_setting.setValue("model", "./Data/model/test-11.engine");
+    gui_setting.setValue("model", "./Data/model/test-13.engine");
 }
 
 void AppModel::processImage(cv::Mat frame)
