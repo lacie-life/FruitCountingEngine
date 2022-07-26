@@ -25,6 +25,10 @@ find_package(GLUT REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
 
+find_package(Boost COMPONENTS system filesystem REQUIRED)
+include_directories(${Boost_INCLUDE_DIR})
+link_directories(${Boost_LIBRARY_DIR})
+
 include_directories(${GLEW_INCLUDE_DIRS})
 include_directories(${GLUT_INCLUDE_DIR})
 
@@ -112,14 +116,15 @@ target_link_libraries(bbtracker ${OpenCV_LIBS}
                                 ${CUDA_CUDA_LIBRARY}
                                 ${ZED_LIBRARIES})
 
-add_executable(yolov5_detector_test Test/detector_test.cpp)
+add_executable(yolov5_detector_test Test/detector_image_test.cpp)
 
 target_link_libraries(yolov5_detector_test ${OpenCV_LIBS}
                                     yolov5-detector
                                     lk-tracker
                                     mo-tracker
                                     ${CUDA_CUDA_LIBRARY}
-                                    ${ZED_LIBRARIES})
+                                    ${ZED_LIBRARIES}
+                                    ${Boost_LIBRARIES})
 
 add_executable(mo_tracker_test Test/mo_tracker_test.cpp Test/zed2_pipeline.h)
 
