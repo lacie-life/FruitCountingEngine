@@ -29,10 +29,6 @@ AppModel::AppModel(QObject *parent)
 
         emit imageReady(img);
     });
-
-//     connect(&m_update, &QTimer::timeout, this, &AppModel::sendImage);
-
-//     m_update.start(1000/30);
 }
 
 AppModel::~AppModel()

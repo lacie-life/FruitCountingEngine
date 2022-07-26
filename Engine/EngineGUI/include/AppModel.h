@@ -7,13 +7,8 @@
 #include <QThread>
 #include <memory>
 #include "QMODetAndTrack.h"
+#include "AppConstants.h"
 
-#ifndef MACRO_DEFINE
-#define MACRO_DEFINE
-
-#define CONSOLE qDebug() << "[" << __FUNCTION__ << "] "
-
-#endif
 
 class AppModel : public QObject
 {

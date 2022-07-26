@@ -206,10 +206,10 @@ void QMODetAndTrack::Process()
 
             std::string label;
             if (fLabel == 2.0){
-                label = "Bicycle";
+                label = "Ripe";
             }
             else if (fLabel == 0.0){
-                label = "People";
+                label = "Unripe";
             }else{
                 label = std::to_string(static_cast<int>(fLabel));
             }
