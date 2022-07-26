@@ -40,10 +40,10 @@ Building a camera module mounted on a UAV that collects data on images of dragon
     - [x] MO Tracker counting 
     - [ ] Improve counting algorithm (trying bounding box optical flow and SfM)
   - [ ] Improve Tracking and Counting Algorithm
-  - [ ] Test with dragon fruit model and data
-  - [ ] Simple GUI
+  - [x] Test with dragon fruit model and data
+  - [x] Simple GUI
     - [x] Control start/stop camera
-    - [ ] Counting control
+    - [x] Counting control
 
 - [ ] Assign 3D position 
   - [ ] Visual Odometry run-time
