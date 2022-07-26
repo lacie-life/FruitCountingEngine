@@ -8,6 +8,8 @@ AppModel::AppModel(QObject *parent)
     readSettingFile("./Data/config/config.yaml");
 
     m_detAndTrack = new QMODetAndTrack();
+    this->m_detAndTrack->moveToThread(&this->m_detAndTrackThread);
+    this->m_detAndTrackThread.start();
 
     m_detAndTrack->init();
 
@@ -35,6 +37,10 @@ AppModel::AppModel(QObject *parent)
 
 AppModel::~AppModel()
 {
+    if (this->m_detAndTrackThread.isRunning()) {
+        this->m_detAndTrackThread.quit();
+        this->m_detAndTrackThread.wait();
+    }
 
 }
 

@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QPixmap>
 #include <QTimer>
+#include <QThread>
+#include <memory>
 #include "QMODetAndTrack.h"
 
 #ifndef MACRO_DEFINE
@@ -46,7 +48,9 @@ public slots:
 
 public:
     APP_STATE m_state;
+
     QMODetAndTrack* m_detAndTrack;
+    QThread m_detAndTrackThread;
 
     QTimer m_update;
     cv::Mat m_frame;

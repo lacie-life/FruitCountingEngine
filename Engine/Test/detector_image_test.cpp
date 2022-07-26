@@ -47,7 +47,7 @@ int main( int argc, char** argv )
         for(auto object:objects)
         {
             cv::rectangle(frame, object.rec, cv::Scalar(0, 255, 0), 2, 1);
-            cv::putText(frame, std::to_string((int) object.label), cv::Point(object.rec.x, object.rec.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2, cv::Scalar(0xFF, 0xFF, 0xFF), 2);
+            cv::putText(frame, std::to_string((int) object.label), cv::Point(object.rec.x, object.rec.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2, cv::Scalar(255, 0, 0), 2);
         }
 
         cv::imshow("detection", frame);
