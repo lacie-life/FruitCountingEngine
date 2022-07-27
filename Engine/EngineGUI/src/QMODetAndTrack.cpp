@@ -195,7 +195,7 @@ void QMODetAndTrack::Process()
             // Detection format: [score, label, xmin, ymin, xmax, ymax].
             const float score = d.prob;
             const float fLabel= d.label;
-            
+
             std::cout << fLabel << std::endl;
 
             if(desiredDetect)
@@ -433,7 +433,7 @@ void QMODetAndTrack::ProcessZED()
             regions_t tmpRegions;
             std::vector<Yolo::Detection> detections = detectframev4(left_cv_rgb);
 
-            std::cout << "Number object in frame " << frameCount << "th: " << detections.size() << std::endl;
+            CONSOLE << "Number object in frame " << frameCount << "th: " << detections.size();
 
             // Filter out all the objects based
             // 1. Threshold
@@ -444,6 +444,9 @@ void QMODetAndTrack::ProcessZED()
                 // Detection format: [score, label, xmin, ymin, xmax, ymax].
                 const float score = d.conf;
                 const float fLabel= d.class_id;
+
+                CONSOLE << "Object " << fLabel;
+                CONSOLE << "Conf" << score;
 
                 if(desiredDetect)
                 {
@@ -462,6 +465,8 @@ void QMODetAndTrack::ProcessZED()
                 }else{
                     label = std::to_string(static_cast<int>(fLabel));
                 }
+
+                std::cout << label << std::endl;
 
                 if (score >= detectThreshold) {
 
@@ -642,6 +647,8 @@ void QMODetAndTrack::processv2(cv::Mat image)
         const float score = d.prob;
         const float fLabel= d.label;
 
+        CONSOLE << "Object " << fLabel;
+        CONSOLE << "Conf" << score;
         if(desiredDetect)
         {
             if (!(std::find(z_desiredObjects.begin(), z_desiredObjects.end(), fLabel) != z_desiredObjects.end()))

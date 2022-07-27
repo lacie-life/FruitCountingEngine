@@ -110,7 +110,7 @@ wget -P models https://storage.googleapis.com/models-hao/mobilenet-v1-ssd-mp-0_6
 cd Models/Yolo/yolov5
 python gen_wts.py <path to .pt file>
 
-cd TensorRT-Engine/yolov5/tensorrt_yolov5/
+cd TensorRT-Engine/yolov5/
 
 # Copy your trained model to here
 

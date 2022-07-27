@@ -67,7 +67,7 @@ void AppModel::readSettingFile(QString path)
     gui_setting.setValue("crop_y", "1100");
 
     gui_setting.setValue("threshold", "0.5");
-    gui_setting.setValue("desired_detect", "2");
+    gui_setting.setValue("desired_detect", "0");
     gui_setting.setValue("desired_objects", "1");
 
     gui_setting.setValue("l1p1_x", 950);
