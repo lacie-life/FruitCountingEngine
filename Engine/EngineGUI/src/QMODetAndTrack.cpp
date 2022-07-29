@@ -421,9 +421,6 @@ void QMODetAndTrack::ProcessZED()
             if (useCrop)
             {
                 cv::Mat copyFrame(left_cv_rgb, cropRect);
-                // Deep copy (TODO)
-                //copyFrame.copyTo(frame);
-                // Shallow copy
                 left_cv_rgb = copyFrame;
             }
             tFrameModification += cv::getTickCount() - tStartFrameModification;
@@ -518,10 +515,11 @@ void QMODetAndTrack::ProcessZED()
 
             ++frameCount;
 
-//            cv::imshow("Object", frameDraw);
+            // cv::imshow("Object", frameDraw);
             cv::resize(frameDraw, frameDraw, cv::Size(960, 540));
             emit imageResults(frameDraw);
 
+            // 3D bounding box
             // Preparing for ZED SDK ingesting
             std::vector<sl::CustomBoxObjectData> objects_in;
             for (auto &it : detections) {
@@ -553,8 +551,11 @@ void QMODetAndTrack::ProcessZED()
             // emit imageResults(img);
             cv::waitKey(1);
 
+            // Get object bonding box in 3D
+            // https://www.stereolabs.com/docs/api/classsl_1_1ObjectData.html
             // Retrieve the tracked objects, with 2D and 3D attributes
             zed.retrieveObjects(objects, objectTracker_parameters_rt);
+            
             // GL Viewer
             zed.retrieveMeasure(point_cloud, sl::MEASURE::XYZRGBA, sl::MEM::GPU, pc_resolution);
             zed.getPosition(cam_w_pose, sl::REFERENCE_FRAME::WORLD);

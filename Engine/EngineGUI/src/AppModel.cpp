@@ -37,12 +37,11 @@ AppModel::~AppModel()
         this->m_detAndTrackThread.quit();
         this->m_detAndTrackThread.wait();
     }
-
 }
 
 void AppModel::readSettingFile(QString path)
 {
-    // Something stupid;
+    // Something stupid
     QSettings gui_setting("engine_gui", "MODetAndTrack");
     gui_setting.setValue("output", "./Data/video/output.mp4");
     gui_setting.setValue("input", "./Data/video/MOT17-11.mp4");
@@ -50,7 +49,7 @@ void AppModel::readSettingFile(QString path)
     gui_setting.setValue("start_frame", "0");
 
     gui_setting.setValue("fps", "30");
-    gui_setting.setValue("save_video", false);
+    gui_setting.setValue("save_video", true);
     gui_setting.setValue("output_width", 1280);
     gui_setting.setValue("output_heigh", 720);
     gui_setting.setValue("count", true);
