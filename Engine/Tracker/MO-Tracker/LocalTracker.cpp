@@ -59,9 +59,112 @@ LocalTracker::~LocalTracker(void)
     vpiImageDestroy(imgTemplate);
 }
 
+cv::Mat LocalTracker::preprocessImage(cv::Mat _frame)
+{
+    // We only support grayscale inputs
+    if (_frame.channels() == 3)
+    {
+        cvtColor(_frame, _frame, cv::COLOR_BGR2GRAY);
+    }
+
+    if (backend == VPI_BACKEND_PVA)
+    {
+        // PVA only supports 16-bit unsigned inputs,
+        // where each element is in 0-255 range, so
+        // no rescaling needed.
+        cv::Mat aux;
+        _frame.convertTo(aux, CV_16U);
+        _frame = aux;
+    }
+    else
+    {
+        assert(_frame.type() == CV_8U);
+    }
+
+    return _frame;
+}
+
 // ---------------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------------
+void LocalTracker::VPIUpdate(
+        tracks_t& tracks,
+        cv::UMat prevFrame,
+        cv::UMat currFrame
+        )
+{
+    // get last region point
+    std::vector<cv::Point2f> points[2];
+
+    points[0].reserve(8 * tracks.size());
+    for (auto& track : tracks)
+    {
+        for (const auto& pt : track->m_lastRegion.m_points)
+        {
+            points[0].push_back(pt);
+        }
+    }
+    if (points[0].empty())
+    {
+        return;
+    }
+
+    // convert track rectangles to VPIKLTTrackedBoundingBox
+    std::vector<VPIKLTTrackedBoundingBox> bboxes;
+    int32_t bboxesSize = 0;
+    std::vector<VPIHomographyTransform2D> preds;
+    int32_t predsSize = 0;
+
+    // PVA requires that array capacity is 128.
+    bboxes.reserve(128);
+    preds.reserve(128);
+
+    for (auto& track : tracks)
+    {
+        cv::Rect rect = track->m_lastRegion.m_rect;
+        VPIKLTTrackedBoundingBox track = {};
+
+        // scale
+        track.bbox.xform.mat3[0][0] = 1;
+        track.bbox.xform.mat3[1][1] = 1;
+        // position
+        track.bbox.xform.mat3[0][2] = x;
+        track.bbox.xform.mat3[1][2] = y;
+        // must be 1
+        track.bbox.xform.mat3[2][2] = 1;
+  
+        track.bbox.width     = w;
+        track.bbox.height    = h;
+        track.trackingStatus = 0; // valid tracking
+        track.templateStatus = 1; // must update
+  
+        bboxes.push_back(track);
+  
+        // Identity predicted transform.
+        VPIHomographyTransform2D xform = {};
+        xform.mat3[0][0]               = 1;
+        xform.mat3[1][1]               = 1;
+        xform.mat3[2][2]               = 1;
+        preds.push_back(xform);
+  
+        bboxes_size_at_frame[frame] = bboxes.size();
+    }
+
+    // Wrap the input arrays into VPIArray's
+    VPIArrayData data           = {};
+    data.bufferType             = VPI_ARRAY_BUFFER_HOST_AOS;
+    data.buffer.aos.type        = VPI_ARRAY_TYPE_KLT_TRACKED_BOUNDING_BOX;
+    data.buffer.aos.capacity    = bboxes.capacity();
+    data.buffer.aos.sizePointer = &bboxesSize;
+    data.buffer.aos.data        = &bboxes[0];
+    CHECK_STATUS(vpiArrayCreateWrapper(&data, 0, &inputBoxList));
+  
+    data.buffer.aos.type        = VPI_ARRAY_TYPE_HOMOGRAPHY_TRANSFORM_2D;
+    data.buffer.aos.sizePointer = &predsSize;
+    data.buffer.aos.data        = &preds[0];
+    CHECK_STATUS(vpiArrayCreateWrapper(&data, 0, &inputPredList));
+}
+
 void LocalTracker::Update(
         tracks_t& tracks,
         cv::UMat prevFrame,

@@ -48,7 +48,11 @@ public:
     LocalTracker();
     ~LocalTracker(void);
 
+    cv::Mat preprocessImage(cv::Mat _frame);
+
     void Update(tracks_t& tracks, cv::UMat prevFrame, cv::UMat currFrame);
+    void VPIUpdate(tracks_t& tracks, cv::UMat prevFrame, cv::UMat currFrame);
+
 
 private:
 
@@ -68,6 +72,10 @@ private:
     VPIPayload klt           = NULL;
     VPIImage imgReference    = NULL;
     VPIImage imgTemplate     = NULL;
+
+    // Stores how many bboxes there are in each frame. Only
+    // stores when the bboxes count change.
+    std::map<int, size_t> bboxes_size_at_frame; // frame -> bbox count
 };
 
 #endif // LOCAL_TRACKER_H
