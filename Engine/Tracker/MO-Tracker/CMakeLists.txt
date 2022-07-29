@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
+find_package(vpi REQUIRED)
 find_package(OpenCV 4.2 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
@@ -153,5 +154,5 @@ source_group("GTL" FILES ${gtl_source} ${gtl_header})
 # ----------------------------------------------------------------------------
 # Link libraries to project
 # ----------------------------------------------------------------------------
-target_link_libraries(mo-tracker ${OpenCV_LIBS})
+target_link_libraries(mo-tracker ${OpenCV_LIBS} vpi)
 
