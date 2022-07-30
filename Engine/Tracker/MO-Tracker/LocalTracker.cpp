@@ -6,29 +6,9 @@
 LocalTracker::LocalTracker()
 {
 
-    // VPI Setting
     backend = VPI_BACKEND_PVA;
 
-    // Create the stream for the given backend.
-    CHECK_STATUS(vpiStreamCreate(backend, &stream));
-
-    vpiCvTemplate_ = preprocessImage(last_frame_);
-
-    CHECK_STATUS(vpiImageCreateOpenCVMatWrapper(vpiCvTemplate_, 0, &imgTemplate));
-
-    // Create the reference image wrapper. Let's wrap the cvTemplate for now just
-    // to create the wrapper. Later we'll set it to wrap the actual reference image.
-    CHECK_STATUS(vpiImageCreateOpenCVMatWrapper(vpiCvTemplate_, 0, &imgReference));
-
-    VPIImageFormat imgFormat;
-    CHECK_STATUS(vpiImageGetFormat(imgTemplate, &imgFormat));
-
-    // Using this first frame's characteristics, create a KLT Bounding Box Tracker payload.
-    // We're limiting the template dimensions to 64x64.
-    CHECK_STATUS(vpiCreateKLTFeatureTracker(backend, vpiCvTemplate_.cols, vpiCvTemplate_.rows, imgFormat, NULL, &klt));
-
-    // Parameters we'll use. No need to change them on the fly, so just define them here.
-    VPIKLTFeatureTrackerParams params = {};
+    CHECK_STATUS(vpiInitKLTFeatureTrackerParams(&params));
     params.numberOfIterationsScaling  = 20;
     params.nccThresholdUpdate         = 0.8f;
     params.nccThresholdKill           = 0.6f;
@@ -36,12 +16,6 @@ LocalTracker::LocalTracker()
     params.maxScaleChange             = 0.2f;
     params.maxTranslationChange       = 1.5f;
     params.trackingType               = VPI_KLT_INVERSE_COMPOSITIONAL;
-
-    // Output array with estimated bbox for current frame.
-    CHECK_STATUS(vpiArrayCreate(128, VPI_ARRAY_TYPE_KLT_TRACKED_BOUNDING_BOX, 0, &outputBoxList));
-
-    // Output array with estimated transform of input bbox to match output bbox.
-    CHECK_STATUS(vpiArrayCreate(128, VPI_ARRAY_TYPE_HOMOGRAPHY_TRANSFORM_2D, 0, &outputEstimList));
 }
 
 // ---------------------------------------------------------------------------
@@ -49,14 +23,6 @@ LocalTracker::LocalTracker()
 // ---------------------------------------------------------------------------
 LocalTracker::~LocalTracker(void)
 {
-    vpiStreamDestroy(stream);
-    vpiPayloadDestroy(klt);
-    vpiArrayDestroy(inputBoxList);
-    vpiArrayDestroy(inputPredList);
-    vpiArrayDestroy(outputBoxList);
-    vpiArrayDestroy(outputEstimList);
-    vpiImageDestroy(imgReference);
-    vpiImageDestroy(imgTemplate);
 }
 
 cv::Mat LocalTracker::preprocessImage(cv::Mat _frame)
@@ -89,26 +55,10 @@ cv::Mat LocalTracker::preprocessImage(cv::Mat _frame)
 // ---------------------------------------------------------------------------
 void LocalTracker::VPIUpdate(
         tracks_t& tracks,
-        cv::UMat prevFrame,
-        cv::UMat currFrame
+        cv::UMat _prevFrame,
+        cv::UMat _currFrame
         )
 {
-    // get last region point
-    std::vector<cv::Point2f> points[2];
-
-    points[0].reserve(8 * tracks.size());
-    for (auto& track : tracks)
-    {
-        for (const auto& pt : track->m_lastRegion.m_points)
-        {
-            points[0].push_back(pt);
-        }
-    }
-    if (points[0].empty())
-    {
-        return;
-    }
-
     // convert track rectangles to VPIKLTTrackedBoundingBox
     std::vector<VPIKLTTrackedBoundingBox> bboxes;
     int32_t bboxesSize = 0;
@@ -128,13 +78,13 @@ void LocalTracker::VPIUpdate(
         track.bbox.xform.mat3[0][0] = 1;
         track.bbox.xform.mat3[1][1] = 1;
         // position
-        track.bbox.xform.mat3[0][2] = x;
-        track.bbox.xform.mat3[1][2] = y;
+        track.bbox.xform.mat3[0][2] = rect.x;
+        track.bbox.xform.mat3[1][2] = rect.y;
         // must be 1
         track.bbox.xform.mat3[2][2] = 1;
   
-        track.bbox.width     = w;
-        track.bbox.height    = h;
+        track.bbox.width     = rect.w;
+        track.bbox.height    = rect.h;
         track.trackingStatus = 0; // valid tracking
         track.templateStatus = 1; // must update
   
@@ -163,6 +113,26 @@ void LocalTracker::VPIUpdate(
     data.buffer.aos.sizePointer = &predsSize;
     data.buffer.aos.data        = &preds[0];
     CHECK_STATUS(vpiArrayCreateWrapper(&data, 0, &inputPredList));
+
+    // Create the stream for the given backend.
+    CHECK_STATUS(vpiStreamCreate(backend, &stream));
+
+    cv::Mat tempPrevFrame = _prevFrame.getMat(cv::ACCESS_READ);
+    cv::Mat tempCurrFrame = _currFrame.getMat(cv::ACCESS_READ);
+
+    prevFrame = preprocessImage(tempPrevFrame);
+    CHECK_STATUS(vpiImageCreateWrapperOpenCVMat(prevFrame, 0, &imgTemplate));
+
+    currFrame = preprocessImage(tempCurrFrame);
+    CHECK_STATUS(vpiImageCreateWrapperOpenCVMat(currFrame, 0, &imgReference));
+
+    CHECK_STATUS(vpiCreateKLTFeatureTracker(backend, prevFrame.cols, prevFrame.rows, imgFormat, NULL, &klt));
+
+     // Output array with estimated bbox for current frame.
+    CHECK_STATUS(vpiArrayCreate(128, VPI_ARRAY_TYPE_KLT_TRACKED_BOUNDING_BOX, 0, &outputBoxList));
+  
+    // Output array with estimated transform of input bbox to match output bbox.
+    CHECK_STATUS(vpiArrayCreate(128, VPI_ARRAY_TYPE_HOMOGRAPHY_TRANSFORM_2D, 0, &outputEstimList));
 }
 
 void LocalTracker::Update(

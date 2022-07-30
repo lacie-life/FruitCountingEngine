@@ -56,7 +56,8 @@ public:
 
 private:
 
-    cv::Mat last_frame_;
+    cv::Mat prevFrame;
+    cv::Mat currFrame;
     cv::Mat vpiCvTemplate_;
 
     // Arrays that will store our input bboxes and predicted transform.
@@ -64,6 +65,7 @@ private:
     VPIArray inputPredList = NULL;
 
     VPIBackend backend;
+    VPIKLTFeatureTrackerParams params;
 
     // Other VPI objects that will be used
     VPIStream stream         = NULL;
