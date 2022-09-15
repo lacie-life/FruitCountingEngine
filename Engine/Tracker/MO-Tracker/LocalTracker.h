@@ -28,19 +28,19 @@
 // Tracking only founded regions between two frames (now used LK optical flow with VPI)
 // ------------------------------------------------------------------------------------
 
-#define CHECK_STATUS(STMT)                                    \
-    do                                                        \
-    {                                                         \
-        VPIStatus status = (STMT);                            \
-        if (status != VPI_SUCCESS)                            \
-        {                                                     \
-            char buffer[VPI_MAX_STATUS_MESSAGE_LENGTH];       \
-            vpiGetLastStatusMessage(buffer, sizeof(buffer));  \
-            std::ostringstream ss;                            \
-            ss << vpiStatusGetName(status) << ": " << buffer; \
-            throw std::runtime_error(ss.str());               \
-        }                                                     \
-    } while (0);
+// #define CHECK_STATUS(STMT)                                    \
+//     do                                                        \
+//     {                                                         \
+//         VPIStatus status = (STMT);                            \
+//         if (status != VPI_SUCCESS)                            \
+//         {                                                     \
+//             char buffer[VPI_MAX_STATUS_MESSAGE_LENGTH];       \
+//             vpiGetLastStatusMessage(buffer, sizeof(buffer));  \
+//             std::ostringstream ss;                            \
+//             ss << vpiStatusGetName(status) << ": " << buffer; \
+//             throw std::runtime_error(ss.str());               \
+//         }                                                     \
+//     } while (0);
 
 class LocalTracker
 {
@@ -48,10 +48,10 @@ public:
     LocalTracker();
     ~LocalTracker(void);
 
-    cv::Mat preprocessImage(cv::Mat _frame);
+    // cv::Mat preprocessImage(cv::Mat _frame);
 
     void Update(tracks_t& tracks, cv::UMat prevFrame, cv::UMat currFrame);
-    void VPIUpdate(tracks_t& tracks, cv::UMat prevFrame, cv::UMat currFrame);
+    // void VPIUpdate(tracks_t& tracks, cv::UMat prevFrame, cv::UMat currFrame);
 
 
 private:
@@ -60,24 +60,24 @@ private:
     cv::Mat currFrame;
     cv::Mat vpiCvTemplate_;
 
-    // Arrays that will store our input bboxes and predicted transform.
-    VPIArray inputBoxList = NULL;
-    VPIArray inputPredList = NULL;
+    // // Arrays that will store our input bboxes and predicted transform.
+    // VPIArray inputBoxList = NULL;
+    // VPIArray inputPredList = NULL;
 
-    VPIBackend backend;
-    VPIKLTFeatureTrackerParams params;
+    // VPIBackend backend;
+    // VPIKLTFeatureTrackerParams params;
 
-    // Other VPI objects that will be used
-    VPIStream stream         = NULL;
-    VPIArray outputBoxList   = NULL;
-    VPIArray outputEstimList = NULL;
-    VPIPayload klt           = NULL;
-    VPIImage imgReference    = NULL;
-    VPIImage imgTemplate     = NULL;
+    // // Other VPI objects that will be used
+    // VPIStream stream         = NULL;
+    // VPIArray outputBoxList   = NULL;
+    // VPIArray outputEstimList = NULL;
+    // VPIPayload klt           = NULL;
+    // VPIImage imgReference    = NULL;
+    // VPIImage imgTemplate     = NULL;
 
-    // Stores how many bboxes there are in each frame. Only
-    // stores when the bboxes count change.
-    std::map<int, size_t> bboxes_size_at_frame; // frame -> bbox count
+    // // Stores how many bboxes there are in each frame. Only
+    // // stores when the bboxes count change.
+    // std::map<int, size_t> bboxes_size_at_frame; // frame -> bbox count
 };
 
 #endif // LOCAL_TRACKER_H
