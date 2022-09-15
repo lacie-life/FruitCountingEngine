@@ -6,16 +6,16 @@
 LocalTracker::LocalTracker()
 {
 
-    backend = VPI_BACKEND_PVA;
+    // backend = VPI_BACKEND_PVA;
 
-    CHECK_STATUS(vpiInitKLTFeatureTrackerParams(&params));
-    params.numberOfIterationsScaling  = 20;
-    params.nccThresholdUpdate         = 0.8f;
-    params.nccThresholdKill           = 0.6f;
-    params.nccThresholdStop           = 1.0f;
-    params.maxScaleChange             = 0.2f;
-    params.maxTranslationChange       = 1.5f;
-    params.trackingType               = VPI_KLT_INVERSE_COMPOSITIONAL;
+    // CHECK_STATUS(vpiInitKLTFeatureTrackerParams(&params));
+    // params.numberOfIterationsScaling  = 20;
+    // params.nccThresholdUpdate         = 0.8f;
+    // params.nccThresholdKill           = 0.6f;
+    // params.nccThresholdStop           = 1.0f;
+    // params.maxScaleChange             = 0.2f;
+    // params.maxTranslationChange       = 1.5f;
+    // params.trackingType               = VPI_KLT_INVERSE_COMPOSITIONAL;
 }
 
 // ---------------------------------------------------------------------------
@@ -25,115 +25,115 @@ LocalTracker::~LocalTracker(void)
 {
 }
 
-cv::Mat LocalTracker::preprocessImage(cv::Mat _frame)
-{
-    // We only support grayscale inputs
-    if (_frame.channels() == 3)
-    {
-        cvtColor(_frame, _frame, cv::COLOR_BGR2GRAY);
-    }
+// cv::Mat LocalTracker::preprocessImage(cv::Mat _frame)
+// {
+//     // We only support grayscale inputs
+//     if (_frame.channels() == 3)
+//     {
+//         cvtColor(_frame, _frame, cv::COLOR_BGR2GRAY);
+//     }
 
-    if (backend == VPI_BACKEND_PVA)
-    {
-        // PVA only supports 16-bit unsigned inputs,
-        // where each element is in 0-255 range, so
-        // no rescaling needed.
-        cv::Mat aux;
-        _frame.convertTo(aux, CV_16U);
-        _frame = aux;
-    }
-    else
-    {
-        assert(_frame.type() == CV_8U);
-    }
+//     if (backend == VPI_BACKEND_PVA)
+//     {
+//         // PVA only supports 16-bit unsigned inputs,
+//         // where each element is in 0-255 range, so
+//         // no rescaling needed.
+//         cv::Mat aux;
+//         _frame.convertTo(aux, CV_16U);
+//         _frame = aux;
+//     }
+//     else
+//     {
+//         assert(_frame.type() == CV_8U);
+//     }
 
-    return _frame;
-}
+//     return _frame;
+// }
 
 // ---------------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------------
-void LocalTracker::VPIUpdate(
-        tracks_t& tracks,
-        cv::UMat _prevFrame,
-        cv::UMat _currFrame
-        )
-{
-    // convert track rectangles to VPIKLTTrackedBoundingBox
-    std::vector<VPIKLTTrackedBoundingBox> bboxes;
-    int32_t bboxesSize = 0;
-    std::vector<VPIHomographyTransform2D> preds;
-    int32_t predsSize = 0;
+// void LocalTracker::VPIUpdate(
+//         tracks_t& tracks,
+//         cv::UMat _prevFrame,
+//         cv::UMat _currFrame
+//         )
+// {
+//     // convert track rectangles to VPIKLTTrackedBoundingBox
+//     std::vector<VPIKLTTrackedBoundingBox> bboxes;
+//     int32_t bboxesSize = 0;
+//     std::vector<VPIHomographyTransform2D> preds;
+//     int32_t predsSize = 0;
 
-    // PVA requires that array capacity is 128.
-    bboxes.reserve(128);
-    preds.reserve(128);
+//     // PVA requires that array capacity is 128.
+//     bboxes.reserve(128);
+//     preds.reserve(128);
 
-    for (auto& track : tracks)
-    {
-        cv::Rect rect = track->m_lastRegion.m_rect;
-        VPIKLTTrackedBoundingBox track = {};
+//     for (auto& track : tracks)
+//     {
+//         cv::Rect rect = track->m_lastRegion.m_rect;
+//         VPIKLTTrackedBoundingBox track = {};
 
-        // scale
-        track.bbox.xform.mat3[0][0] = 1;
-        track.bbox.xform.mat3[1][1] = 1;
-        // position
-        track.bbox.xform.mat3[0][2] = rect.x;
-        track.bbox.xform.mat3[1][2] = rect.y;
-        // must be 1
-        track.bbox.xform.mat3[2][2] = 1;
+//         // scale
+//         track.bbox.xform.mat3[0][0] = 1;
+//         track.bbox.xform.mat3[1][1] = 1;
+//         // position
+//         track.bbox.xform.mat3[0][2] = rect.x;
+//         track.bbox.xform.mat3[1][2] = rect.y;
+//         // must be 1
+//         track.bbox.xform.mat3[2][2] = 1;
   
-        track.bbox.width     = rect.w;
-        track.bbox.height    = rect.h;
-        track.trackingStatus = 0; // valid tracking
-        track.templateStatus = 1; // must update
+//         track.bbox.width     = rect.w;
+//         track.bbox.height    = rect.h;
+//         track.trackingStatus = 0; // valid tracking
+//         track.templateStatus = 1; // must update
   
-        bboxes.push_back(track);
+//         bboxes.push_back(track);
   
-        // Identity predicted transform.
-        VPIHomographyTransform2D xform = {};
-        xform.mat3[0][0]               = 1;
-        xform.mat3[1][1]               = 1;
-        xform.mat3[2][2]               = 1;
-        preds.push_back(xform);
+//         // Identity predicted transform.
+//         VPIHomographyTransform2D xform = {};
+//         xform.mat3[0][0]               = 1;
+//         xform.mat3[1][1]               = 1;
+//         xform.mat3[2][2]               = 1;
+//         preds.push_back(xform);
   
-        bboxes_size_at_frame[frame] = bboxes.size();
-    }
+//         bboxes_size_at_frame[frame] = bboxes.size();
+//     }
 
-    // Wrap the input arrays into VPIArray's
-    VPIArrayData data           = {};
-    data.bufferType             = VPI_ARRAY_BUFFER_HOST_AOS;
-    data.buffer.aos.type        = VPI_ARRAY_TYPE_KLT_TRACKED_BOUNDING_BOX;
-    data.buffer.aos.capacity    = bboxes.capacity();
-    data.buffer.aos.sizePointer = &bboxesSize;
-    data.buffer.aos.data        = &bboxes[0];
-    CHECK_STATUS(vpiArrayCreateWrapper(&data, 0, &inputBoxList));
+//     // Wrap the input arrays into VPIArray's
+//     VPIArrayData data           = {};
+//     data.bufferType             = VPI_ARRAY_BUFFER_HOST_AOS;
+//     data.buffer.aos.type        = VPI_ARRAY_TYPE_KLT_TRACKED_BOUNDING_BOX;
+//     data.buffer.aos.capacity    = bboxes.capacity();
+//     data.buffer.aos.sizePointer = &bboxesSize;
+//     data.buffer.aos.data        = &bboxes[0];
+//     CHECK_STATUS(vpiArrayCreateWrapper(&data, 0, &inputBoxList));
   
-    data.buffer.aos.type        = VPI_ARRAY_TYPE_HOMOGRAPHY_TRANSFORM_2D;
-    data.buffer.aos.sizePointer = &predsSize;
-    data.buffer.aos.data        = &preds[0];
-    CHECK_STATUS(vpiArrayCreateWrapper(&data, 0, &inputPredList));
+//     data.buffer.aos.type        = VPI_ARRAY_TYPE_HOMOGRAPHY_TRANSFORM_2D;
+//     data.buffer.aos.sizePointer = &predsSize;
+//     data.buffer.aos.data        = &preds[0];
+//     CHECK_STATUS(vpiArrayCreateWrapper(&data, 0, &inputPredList));
 
-    // Create the stream for the given backend.
-    CHECK_STATUS(vpiStreamCreate(backend, &stream));
+//     // Create the stream for the given backend.
+//     CHECK_STATUS(vpiStreamCreate(backend, &stream));
 
-    cv::Mat tempPrevFrame = _prevFrame.getMat(cv::ACCESS_READ);
-    cv::Mat tempCurrFrame = _currFrame.getMat(cv::ACCESS_READ);
+//     cv::Mat tempPrevFrame = _prevFrame.getMat(cv::ACCESS_READ);
+//     cv::Mat tempCurrFrame = _currFrame.getMat(cv::ACCESS_READ);
 
-    prevFrame = preprocessImage(tempPrevFrame);
-    CHECK_STATUS(vpiImageCreateWrapperOpenCVMat(prevFrame, 0, &imgTemplate));
+//     prevFrame = preprocessImage(tempPrevFrame);
+//     CHECK_STATUS(vpiImageCreateWrapperOpenCVMat(prevFrame, 0, &imgTemplate));
 
-    currFrame = preprocessImage(tempCurrFrame);
-    CHECK_STATUS(vpiImageCreateWrapperOpenCVMat(currFrame, 0, &imgReference));
+//     currFrame = preprocessImage(tempCurrFrame);
+//     CHECK_STATUS(vpiImageCreateWrapperOpenCVMat(currFrame, 0, &imgReference));
 
-    CHECK_STATUS(vpiCreateKLTFeatureTracker(backend, prevFrame.cols, prevFrame.rows, imgFormat, NULL, &klt));
+//     CHECK_STATUS(vpiCreateKLTFeatureTracker(backend, prevFrame.cols, prevFrame.rows, imgFormat, NULL, &klt));
 
-     // Output array with estimated bbox for current frame.
-    CHECK_STATUS(vpiArrayCreate(128, VPI_ARRAY_TYPE_KLT_TRACKED_BOUNDING_BOX, 0, &outputBoxList));
+//      // Output array with estimated bbox for current frame.
+//     CHECK_STATUS(vpiArrayCreate(128, VPI_ARRAY_TYPE_KLT_TRACKED_BOUNDING_BOX, 0, &outputBoxList));
   
-    // Output array with estimated transform of input bbox to match output bbox.
-    CHECK_STATUS(vpiArrayCreate(128, VPI_ARRAY_TYPE_HOMOGRAPHY_TRANSFORM_2D, 0, &outputEstimList));
-}
+//     // Output array with estimated transform of input bbox to match output bbox.
+//     CHECK_STATUS(vpiArrayCreate(128, VPI_ARRAY_TYPE_HOMOGRAPHY_TRANSFORM_2D, 0, &outputEstimList));
+// }
 
 void LocalTracker::Update(
         tracks_t& tracks,
