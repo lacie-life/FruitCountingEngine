@@ -29,7 +29,7 @@ Building a camera module mounted on a UAV that collects data on images of dragon
   - [ ] Record with Quad Camera, MyntEye and RTK (Phase 2)
 
 ### Phase 1
-- [ ] Implement model in Jetson AGX and ZED 2  
+- [x] Implement model in Jetson AGX and ZED 2  
   - [x] Run TenserRT Engine in ZED 2 Video stream 
     - [x] Build and Run
     - [x] Fixing crash (fixed bug => ZED SDK 3.6.5) 
