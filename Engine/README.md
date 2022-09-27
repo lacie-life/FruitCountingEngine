@@ -11,6 +11,8 @@ https://en.wikipedia.org/wiki/Hungarian_algorithm#:~:text=The%20Hungarian%20meth
 
 https://www.geeksforgeeks.org/hungarian-algorithm-assignment-problem-set-1-introduction/
 
+https://brilliant.org/wiki/hungarian-matching/
+
 # Refer
 
 https://github.com/abdullahsumbal/SSD_Tracker.git
