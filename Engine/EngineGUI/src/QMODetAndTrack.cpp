@@ -107,6 +107,7 @@ void QMODetAndTrack::Process()
 
     // Set up input
     cv::VideoCapture cap(inFile);
+//    cv::VideoCapture cap('uridecodebin uri=file:///home/jun/Github/FruitCountingEngine/Engine/Data/video/MVI_3448_1.mp4 ! nvvidconv ! video/x-raw,format=YUY2 ! xvimagesink', cv::CAP_GSTREAMER);
 
     if (!cap.isOpened()) {
         std::cout << "Failed to open video: " << inFile << std::endl;
@@ -257,6 +258,7 @@ void QMODetAndTrack::Process()
 
         ++frameCount;
 
+        cv::resize(frame, frame, cv::Size(960, 540));
         emit imageResults(frame);
     }
     if (cap.isOpened()) {

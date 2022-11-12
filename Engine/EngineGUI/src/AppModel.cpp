@@ -43,8 +43,8 @@ void AppModel::readSettingFile(QString path)
 {
     // Something stupid
     QSettings gui_setting("engine_gui", "MODetAndTrack");
-    gui_setting.setValue("output", "./Data/video/output.mp4");
-    gui_setting.setValue("input", "./Data/video/MOT17-11.mp4");
+    gui_setting.setValue("output", "./Data/video/output_3.mp4");
+    gui_setting.setValue("input", "./Data/video/MVI_3441.MP4");
     gui_setting.setValue("end_frame", "100000");
     gui_setting.setValue("start_frame", "0");
 
