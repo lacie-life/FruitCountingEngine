@@ -119,15 +119,7 @@ make
 ```
 <Updating>
 
-## Project report
-
-[Overleaf](https://www.overleaf.com/read/nymnjngppwvc)
-
-## Abstract
-
-- Using TensorRT for optimi model
-- Real data collection
-- Accuracy
+## Report (Pending)
 
 ## Ref
 
