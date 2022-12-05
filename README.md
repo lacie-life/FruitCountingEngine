@@ -9,7 +9,7 @@ Building a camera module mounted on a UAV that collects data on images of dragon
 - [x] Jetson AGX Xavier (32GB)
 - [x] ZED 2 camera
 - [x] Drone  
-- [ ] RTK
+- [x] RTK
 
 ## Software
 
@@ -18,15 +18,10 @@ Building a camera module mounted on a UAV that collects data on images of dragon
 
 ## Tasks
 
-- [ ] Model dragon fruit detection (SSD-Mobilenet-v2/Yolov5)
+- [x] Model dragon fruit detection (SSD-Mobilenet-v2/Yolov5)
   - [x] Train test
-  - [x] Dataset (Find more)
+  - [x] Dataset
   - [x] Evaluate model
-  - [ ] Improve model
-- [ ] Record data 
-  - [x] Print 3D box 
-  - [x] Record with Zed 2, T265 and RTK (Phase 1)
-  - [ ] Record with Quad Camera, MyntEye and RTK (Phase 2)
 
 ### Phase 1
 - [x] Implement model in Jetson AGX and ZED 2  
@@ -35,27 +30,11 @@ Building a camera module mounted on a UAV that collects data on images of dragon
     - [x] Fixing crash (fixed bug => ZED SDK 3.6.5) 
   - [x] Bounding Box Tracker
     - [x] MO Tracker (testing) 
-    - [ ] MO Tracker with VPI (Pending)
-  - [x] Counting Object 
-    - [x] MO Tracker counting 
-    - [ ] Improve counting algorithm (trying bounding box optical flow and SfM)
-  - [ ] Improve Tracking and Counting Algorithm
+  - [x] Counting Algorithm
   - [x] Test with dragon fruit model and data
   - [x] Simple GUI
     - [x] Control start/stop camera
     - [x] Counting control
-
-- [ ] Assign 3D position 
-  - [ ] Visual Odometry run-time
-
-- [ ] Simple Qt GUI 
-  - [ ] ROS bag record
-  - [ ] 3D Reconstruction (GTSAM SfM and PMVS2)
- 
-### Phase 2
-- [ ] Box for Mynt and Quad Camera
-- [ ] Implement with Quad Camera, MyntEye and RTK
-- [ ] 3D Reconstruction (GTSAM SfM and PMVS2) => Have some problem with PMVS 2 and libjpeg of OpenCV (LOL) => GreenHouseAR
 
 ## Usage
 
