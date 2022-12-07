@@ -38,7 +38,13 @@ Building a camera module mounted on a UAV that collects data on images of dragon
 
 ## Usage
 
-### 1. Install requierment
+### 1. Requierments
+
+- ZED SDK (ZED SDK 3.6.5)
+- OpenCV 4.2
+- CUDA 10.2
+- TensorRT 8
+- Qt 5.12
 
 ### 2. Train model
 
